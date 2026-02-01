@@ -216,10 +216,10 @@ export function Header() {
                   ) : (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link to="/auth/login" className="cursor-pointer">Sign In</Link>
+                        <Link to="/sign-in" className="cursor-pointer">Sign In</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/auth/register" className="cursor-pointer">Create Account</Link>
+                        <Link to="/sign-up" className="cursor-pointer">Create Account</Link>
                       </DropdownMenuItem>
                     </>
                   )}

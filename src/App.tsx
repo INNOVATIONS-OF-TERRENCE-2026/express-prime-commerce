@@ -41,6 +41,11 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const SignInPage = lazy(() => import("@/pages/SignInPage"));
 const SignUpPage = lazy(() => import("@/pages/SignUpPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+
+// Additional pages
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const FAQPage = lazy(() => import("@/pages/FAQPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
@@ -78,6 +83,11 @@ const App = () => (
                   <Route path="/register" element={<SignUpPage />} />
                   <Route path="/create-account" element={<SignUpPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  
+                  {/* Additional Info Pages */}
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
                   
                   {/* Public Storefront Routes */}
                   <Route path="/" element={<HomePage />} />
