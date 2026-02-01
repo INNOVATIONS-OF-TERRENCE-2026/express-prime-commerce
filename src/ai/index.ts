@@ -424,6 +424,194 @@ export {
 } from './supplyArbitrage';
 
 // ============================================================================
+// TIER 1: REVENUE IMPACT MODULES
+// ============================================================================
+
+// Dynamic Pricing Engine
+export {
+  calculateOptimalPrice,
+  forecastDemand,
+  updatePriceElasticity,
+  batchPricingAnalysis,
+  getPricingStats,
+  generateMockPricingData,
+  type PricingRule,
+  type DynamicPrice,
+  type DemandForecast,
+  type PriceElasticity,
+  type PsychologicalPricing,
+} from './dynamicPricing';
+
+// Abandoned Cart Recovery
+export {
+  trackCart,
+  markCartAsAbandoned,
+  generateRecoveryEmail,
+  processPendingEmails,
+  getRecoveryStats,
+  generateMockRecoveryData,
+  type TrackedCart,
+  type RecoveryEmail,
+  type CartRecoveryStats,
+  type EmailSequenceType,
+} from './abandonedCartRecovery';
+
+// Customer Lifetime Value Predictor
+export {
+  calculateRFMScores,
+  predictCLV,
+  analyzeChurn,
+  determineCustomerTier,
+  batchPredictCLV,
+  getCLVStats,
+  generateMockCLVData,
+  type CustomerProfile,
+  type CLVPrediction,
+  type RFMScores,
+  type ChurnAnalysis,
+  type CustomerSegment,
+} from './customerLifetimeValue';
+
+// ============================================================================
+// TIER 2: CRITICAL INFRASTRUCTURE MODULES
+// ============================================================================
+
+// Real-Time Analytics
+export {
+  initializeRealTimeAnalytics,
+  trackPageView,
+  trackProductView,
+  trackAddToCart,
+  trackPurchase,
+  trackEvent,
+  getLiveMetrics,
+  startRealTimeSubscriptions,
+  stopRealTimeSubscriptions,
+  getRealTimeStats,
+  generateMockRealTimeData,
+  type RealTimeMetrics,
+  type LiveVisitor,
+  type ConversionFunnel,
+  type RealTimeAlert,
+} from './realTimeAnalytics';
+
+// Performance Optimization
+export {
+  getCached,
+  setCache,
+  invalidateCache as invalidateCacheEntries,
+  clearCache as clearPerformanceCache,
+  getCacheStats as getPerformanceCacheStats,
+  predictPrefetch,
+  executePrefetch,
+  measureWebVitals,
+  recordMetric,
+  generatePerformanceReport,
+  createLazyLoadObserver,
+  lazyLoadImages,
+  getBundleInfo,
+  analyzeBundles,
+  getPerformanceStats,
+  generateMockPerformanceData,
+  type CacheEntry,
+  type PerformanceMetric,
+  type CoreWebVitals,
+  type PerformanceReport,
+  type PrefetchPrediction,
+} from './performanceOptimization';
+
+// Edge Security Hardening
+export {
+  checkRateLimit,
+  getRateLimitHeaders,
+  sanitizeInput,
+  validateJson,
+  validateEmail,
+  validateUrl,
+  getCorsHeaders,
+  handlePreflight,
+  generateFingerprint,
+  assessThreat,
+  blockIp,
+  unblockIp,
+  getBlockedIps,
+  getIpReputation,
+  logSecurityEvent,
+  getSecurityEvents,
+  getSecurityStats,
+  generateMockSecurityData,
+  type ThreatAssessment,
+  type ThreatLevel,
+  type SecurityEvent,
+  type IpReputation,
+  type RequestFingerprint,
+} from './edgeSecurity';
+
+// ============================================================================
+// TIER 3: COMPETITIVE ADVANTAGE MODULES
+// ============================================================================
+
+// AI Product Description Generator
+export {
+  generateDescription,
+  generateDescriptionVariants,
+  optimizeForSEO,
+  rewriteWithTone,
+  getDescriptionGeneratorStats,
+  generateMockDescriptionData,
+  type GeneratedDescription,
+  type DescriptionTone,
+  type SEOScore,
+  type DescriptionVariant,
+} from './productDescriptionGenerator';
+
+// Visual Search Engine
+export {
+  visualSearch,
+  searchByColor,
+  findSimilarProducts as findVisualSimilarProducts,
+  getVisualSearchStats,
+  generateMockVisualSearchData,
+  type VisualSearchResult,
+  type ColorMatch,
+  type StyleMatch,
+} from './visualSearch';
+
+// Multi-Currency Support
+export {
+  convertCurrency,
+  formatPrice as formatCurrencyPrice,
+  getLocalizedPricing,
+  getPriceForRegion,
+  detectUserRegion,
+  refreshExchangeRates,
+  getCurrencyStats,
+  generateMockCurrencyData,
+  type CurrencyCode,
+  type RegionalPricing,
+  type ExchangeRate,
+} from './multiCurrency';
+
+// Subscription System
+export {
+  createSubscription,
+  createMembership,
+  upgradeMembership,
+  downgradeMembership,
+  addMembershipPoints,
+  redeemMembershipPoints,
+  createSubscriptionBox,
+  calculateMemberPrice,
+  getSubscriptionAnalytics,
+  generateMockSubscriptionData,
+  type Subscription,
+  type Membership,
+  type MembershipTier,
+  type SubscriptionBox,
+  type SubscriptionStatus,
+} from './subscriptionSystem';
+
+// ============================================================================
 // CONVENIENCE EXPORTS
 // ============================================================================
 
