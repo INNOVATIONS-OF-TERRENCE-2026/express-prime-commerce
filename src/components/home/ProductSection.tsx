@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ProductGrid } from '@/components/product/ProductGrid';
-import { ProductCardProps } from '@/components/product/ProductCard';
+import { ShopifyProductGrid } from '@/components/product/ShopifyProductGrid';
+import { ShopifyProduct } from '@/lib/shopify';
 import { cn } from '@/lib/utils';
+import { ProductCardProps } from '@/components/product/ProductCard';
+import { ProductGrid } from '@/components/product/ProductGrid';
 
+// Legacy interface for backward compatibility
 interface ProductSectionProps {
   title: string;
   subtitle: string;
@@ -16,6 +19,19 @@ interface ProductSectionProps {
   gradient?: boolean;
 }
 
+// New interface for Shopify products
+interface ShopifyProductSectionProps {
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  products: ShopifyProduct[];
+  isLoading: boolean;
+  viewAllLink: string;
+  bgColor?: string;
+  gradient?: boolean;
+}
+
+// Transformed product section (uses transformed ProductCardProps)
 export function ProductSection({ 
   title, 
   subtitle, 
@@ -111,7 +127,7 @@ export function AIRecommendedSection({ products, isLoading }: AISectionProps) {
         {/* CTA */}
         <div className="text-center mt-12">
           <Button asChild size="lg" className="btn-glow bg-primary hover:bg-primary/90">
-            <Link to="/collections?tag=ai-pick">
+            <Link to="/collections">
               Explore AI Picks
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>

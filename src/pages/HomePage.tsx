@@ -1,37 +1,43 @@
-import { TrendingUp, Star, Zap, Sparkles, Bot } from 'lucide-react';
+import { TrendingUp, Star, Zap, Sparkles } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
 import { ProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
 import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
-import { useProducts } from '@/hooks/useProducts';
+import { useShopifyProducts, transformShopifyProduct } from '@/hooks/useShopifyProducts';
 
 export default function HomePage() {
-  const { products, isLoading } = useProducts();
+  const { data: shopifyProducts = [], isLoading } = useShopifyProducts({ limit: 50 });
 
-  // Filter products by tags with fallback to show some products
-  const trendingProducts = products
-    .filter(p => p.tags?.includes('trending'))
+  // Transform Shopify products to display format
+  const products = shopifyProducts.map(transformShopifyProduct);
+
+  // Filter products by product type for different sections
+  const electronics = products
+    .filter(p => p.productType === 'Electronics' || p.productType === 'Smart Home')
     .slice(0, 4);
   
-  const bestSellers = products
-    .filter(p => p.tags?.includes('bestseller'))
+  const healthWellness = products
+    .filter(p => p.productType === 'Health & Wellness')
     .slice(0, 4);
   
-  const newArrivals = products
-    .filter(p => p.tags?.includes('new'))
+  const homeProducts = products
+    .filter(p => 
+      p.productType === 'Home & Living' || 
+      p.productType === 'Home Organization' || 
+      p.productType === 'Kitchen Gadgets'
+    )
     .slice(0, 4);
 
-  const smartTech = products
-    .filter(p => p.tags?.includes('smart-tech'))
+  const officeProducts = products
+    .filter(p => p.productType === 'Office Accessories')
     .slice(0, 4);
 
-  const aiRecommended = products
-    .filter(p => p.tags?.includes('ai-pick'))
-    .slice(0, 4);
+  // Featured products - mix from different categories
+  const featuredProducts = products.slice(0, 4);
 
-  // Fallback products if no tagged products exist
-  const fallbackProducts = products.slice(0, 4);
+  // AI Recommended - random selection for variety
+  const aiRecommended = products.slice(4, 8);
 
   return (
     <Layout>
@@ -52,51 +58,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trending Now */}
+      {/* Featured Products */}
       <ProductSection
-        title="Trending Now"
+        title="Featured Products"
         subtitle="Hot products flying off the shelves"
         icon={<TrendingUp className="w-6 h-6 text-accent" />}
-        products={trendingProducts.length > 0 ? trendingProducts : fallbackProducts}
+        products={featuredProducts}
         isLoading={isLoading}
-        viewAllLink="/collections?tag=trending"
+        viewAllLink="/collections"
       />
 
-      {/* Best Sellers */}
+      {/* Electronics & Smart Tech */}
       <ProductSection
-        title="Best Sellers"
-        subtitle="Customer favorites you'll love"
+        title="Electronics & Smart Tech"
+        subtitle="Innovation meets everyday convenience"
         icon={<Star className="w-6 h-6 text-accent" />}
-        products={bestSellers.length > 0 ? bestSellers : fallbackProducts}
+        products={electronics.length > 0 ? electronics : featuredProducts}
         isLoading={isLoading}
-        viewAllLink="/collections?tag=bestseller"
+        viewAllLink="/collections?category=electronics"
         bgColor="bg-muted/20"
       />
 
-      {/* New Drops */}
+      {/* Health & Wellness */}
       <ProductSection
-        title="New Drops"
-        subtitle="Fresh additions to our collection"
+        title="Health & Wellness"
+        subtitle="Take care of yourself with premium essentials"
         icon={<Zap className="w-6 h-6 text-emerald-500" />}
-        products={newArrivals.length > 0 ? newArrivals : fallbackProducts}
+        products={healthWellness.length > 0 ? healthWellness : featuredProducts}
         isLoading={isLoading}
-        viewAllLink="/collections?tag=new"
+        viewAllLink="/collections?category=health-wellness"
       />
 
-      {/* Smart Tech Finds */}
+      {/* Home & Living */}
       <ProductSection
-        title="Smart Tech Finds"
-        subtitle="Innovation meets everyday convenience"
+        title="Home & Living"
+        subtitle="Upgrade your living space"
         icon={<Sparkles className="w-6 h-6 text-primary" />}
-        products={smartTech.length > 0 ? smartTech : fallbackProducts}
+        products={homeProducts.length > 0 ? homeProducts : featuredProducts}
         isLoading={isLoading}
-        viewAllLink="/collections?tag=smart-tech"
+        viewAllLink="/collections?category=home-living"
         bgColor="bg-muted/20"
       />
 
       {/* AI Recommended Section */}
       <AIRecommendedSection 
-        products={aiRecommended.length > 0 ? aiRecommended : fallbackProducts}
+        products={aiRecommended.length > 0 ? aiRecommended : featuredProducts}
         isLoading={isLoading}
       />
 
