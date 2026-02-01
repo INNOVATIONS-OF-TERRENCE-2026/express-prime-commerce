@@ -1,3 +1,6 @@
+# Express Prime - Theexpressprime.com
+# AI-Powered E-Commerce Platform
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,9 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://theexpressprime.com/sitemap.xml
+
+# Host
+Host: https://theexpressprime.com
