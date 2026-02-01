@@ -1,0 +1,14 @@
+api_version = "2024-10"
+
+[[extensions]]
+type = "ui_extension"
+name = "Express Prime Product Creator"
+handle = "express-prime-creator"
+
+[[extensions.targeting]]
+module = "./src/index.tsx"
+target = "admin.product-index.action.render"
+
+[extensions.capabilities]
+api_access = true
+network_access = true
