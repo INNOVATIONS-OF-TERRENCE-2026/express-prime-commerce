@@ -217,7 +217,7 @@ export async function classifyProduct(
       parameters: {
         candidate_labels: AI_CONFIG.PRODUCT_CATEGORIES,
       },
-    });
+    }) as any;
     
     if (!result || !result.labels || result.labels.length === 0) {
       return {
@@ -574,7 +574,7 @@ export function forecastDemand(
     nextWeek,
     nextMonth,
     trend,
-    seasonalFactor,
+    seasonalFactor: seasonalityFactor,
     confidence,
   };
 }

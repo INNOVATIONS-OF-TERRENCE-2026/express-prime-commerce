@@ -238,8 +238,8 @@ export function useReviewAnalysis(productId: string | undefined) {
     queryFn: async (): Promise<ReviewAnalysis | null> => {
       if (!productId) return null;
 
-      // Fetch reviews from database
-      const { data: reviews } = await supabase
+      // Fetch reviews from database (cast to any for new table not in generated types)
+      const { data: reviews } = await (supabase as any)
         .from('product_reviews')
         .select('content, rating')
         .eq('product_id', productId);
@@ -255,7 +255,7 @@ export function useReviewAnalysis(productId: string | undefined) {
         };
       }
 
-      const reviewTexts = reviews.map(r => r.content || '').filter(Boolean);
+      const reviewTexts = (reviews as any[]).map((r: any) => r.content || '').filter(Boolean);
       return analyzeReviews(reviewTexts);
     },
     enabled: !!productId,
