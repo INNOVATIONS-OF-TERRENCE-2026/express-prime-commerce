@@ -59,8 +59,8 @@ export function ProductCard({
 
   return (
     <div className="group relative card-premium rounded-2xl bg-card border border-border/50 overflow-hidden">
+      {/* Image Container - wrapped in Link */}
       <Link to={`/product/${handle}`} className="block">
-        {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
           {image ? (
             <img
@@ -110,30 +110,33 @@ export function ProductCard({
               </Badge>
             )}
           </div>
-
-          {/* Quick Actions - Desktop */}
-          <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
-            <Button
-              size="icon"
-              className="bg-white/95 text-primary hover:bg-white hover:scale-110 shadow-xl transition-all duration-200 backdrop-blur-sm"
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="w-5 h-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="bg-white/95 hover:bg-white hover:scale-110 shadow-xl transition-all duration-200 backdrop-blur-sm border-0"
-              asChild
-            >
-              <Link to={`/product/${handle}`}>
-                <Eye className="w-5 h-5" />
-              </Link>
-            </Button>
-          </div>
         </div>
+      </Link>
 
-        {/* Product Info */}
+      {/* Quick Actions - Desktop (outside the Link to avoid nesting) */}
+      <div className="absolute top-0 left-0 right-0 aspect-square flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 pointer-events-none">
+        <Button
+          size="icon"
+          className="bg-white/95 text-primary hover:bg-white hover:scale-110 shadow-xl transition-all duration-200 backdrop-blur-sm pointer-events-auto"
+          onClick={handleAddToCart}
+        >
+          <ShoppingCart className="w-5 h-5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="outline"
+          className="bg-white/95 hover:bg-white hover:scale-110 shadow-xl transition-all duration-200 backdrop-blur-sm border-0 pointer-events-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/product/${handle}`;
+          }}
+        >
+          <Eye className="w-5 h-5" />
+        </Button>
+      </div>
+
+      {/* Product Info - wrapped in Link */}
+      <Link to={`/product/${handle}`} className="block">
         <div className="p-4 space-y-2">
           {productType && (
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
