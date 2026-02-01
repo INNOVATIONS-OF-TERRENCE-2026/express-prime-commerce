@@ -3,23 +3,85 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 
-const queryClient = new QueryClient();
+// Contexts
+import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+
+// Layout wrapper for lazy loading
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
+
+// Lazy load pages for better performance
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const CollectionsPage = lazy(() => import("@/pages/CollectionsPage"));
+const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const CartPage = lazy(() => import("@/pages/CartPage"));
+const OrderTrackingPage = lazy(() => import("@/pages/OrderTrackingPage"));
+const SupportPage = lazy(() => import("@/pages/SupportPage"));
+const PolicyPage = lazy(() => import("@/pages/PolicyPage"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
+const AdminOrders = lazy(() => import("@/pages/admin/AdminOrders"));
+const AdminAIDecisions = lazy(() => import("@/pages/admin/AdminAIDecisions"));
+const AdminBulkImport = lazy(() => import("@/pages/admin/AdminBulkImport"));
+const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Public Storefront Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/collections/:collection" element={<CollectionsPage />} />
+                <Route path="/product/:handle" element={<ProductDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/policies/:type" element={<PolicyPage />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/ai-decisions" element={<AdminAIDecisions />} />
+                <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+                
+                {/* Catch-all 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
