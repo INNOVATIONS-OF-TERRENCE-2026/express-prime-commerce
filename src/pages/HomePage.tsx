@@ -4,40 +4,31 @@ import { HeroSection } from '@/components/home/HeroSection';
 import { ProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
 import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
-import { useShopifyProducts, transformShopifyProduct } from '@/hooks/useShopifyProducts';
+import { useAllProducts, useProductsByType, useProductsByTag } from '@/hooks/useProducts';
 
 export default function HomePage() {
-  const { data: shopifyProducts = [], isLoading } = useShopifyProducts({ limit: 50 });
-
-  // Transform Shopify products to display format
-  const products = shopifyProducts.map(transformShopifyProduct);
-
-  // Filter products by product type for different sections
-  const electronics = products
-    .filter(p => p.productType === 'Electronics' || p.productType === 'Smart Home')
-    .slice(0, 4);
+  // Fetch all products from Supabase
+  const { products, isLoading } = useAllProducts(50);
   
-  const healthWellness = products
-    .filter(p => p.productType === 'Health & Wellness')
-    .slice(0, 4);
-  
-  const homeProducts = products
-    .filter(p => 
-      p.productType === 'Home & Living' || 
-      p.productType === 'Home Organization' || 
-      p.productType === 'Kitchen Gadgets'
-    )
-    .slice(0, 4);
+  // Fetch category-specific products
+  const { products: electronics } = useProductsByType('Electronics', 4);
+  const { products: healthWellness } = useProductsByType('Health & Wellness', 4);
+  const { products: homeProducts } = useProductsByType('Home & Living', 4);
+  const { products: kitchenProducts } = useProductsByType('Kitchen Gadgets', 4);
 
-  const officeProducts = products
-    .filter(p => p.productType === 'Office Accessories')
-    .slice(0, 4);
-
-  // Featured products - mix from different categories
+  // Featured products - first 4 products
   const featuredProducts = products.slice(0, 4);
 
-  // AI Recommended - random selection for variety
-  const aiRecommended = products.slice(4, 8);
+  // AI Recommended - tagged products or fallback to next 4
+  const { products: aiPicks } = useProductsByTag('ai-pick', 4);
+  const aiRecommended = aiPicks.length > 0 ? aiPicks : products.slice(4, 8);
+  
+  // Combine home-related products
+  const allHomeProducts = homeProducts.length > 0 
+    ? homeProducts 
+    : kitchenProducts.length > 0 
+      ? kitchenProducts 
+      : featuredProducts;
 
   return (
     <Layout>
@@ -94,7 +85,7 @@ export default function HomePage() {
         title="Home & Living"
         subtitle="Upgrade your living space"
         icon={<Sparkles className="w-6 h-6 text-primary" />}
-        products={homeProducts.length > 0 ? homeProducts : featuredProducts}
+        products={allHomeProducts}
         isLoading={isLoading}
         viewAllLink="/collections?category=home-living"
         bgColor="bg-muted/20"

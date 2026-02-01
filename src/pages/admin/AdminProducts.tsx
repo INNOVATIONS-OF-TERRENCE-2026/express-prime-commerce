@@ -10,7 +10,9 @@ import {
   Play,
   Trash2,
   Edit,
-  RefreshCcw
+  RefreshCcw,
+  Database,
+  Loader2
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Link, useSearchParams } from 'react-router-dom';
+import { seedProducts, reseedProducts } from '@/lib/seedProducts';
 
 type ProductStatus = 'active' | 'paused' | 'killed' | 'draft';
 
@@ -111,6 +114,24 @@ export default function AdminProducts() {
     },
   });
 
+  // Seed products mutation
+  const seedMutation = useMutation({
+    mutationFn: async (reseed: boolean = false) => {
+      const result = reseed ? await reseedProducts() : await seedProducts();
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      return result;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success(result.message);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const statusColors: Record<ProductStatus, { bg: string; text: string }> = {
     active: { bg: 'bg-green-100', text: 'text-green-700' },
     paused: { bg: 'bg-amber-100', text: 'text-amber-700' },
@@ -169,6 +190,23 @@ export default function AdminProducts() {
         </div>
 
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              if (confirm('This will clear all products and reseed with sample data. Continue?')) {
+                seedMutation.mutate(true);
+              }
+            }}
+            disabled={seedMutation.isPending}
+          >
+            {seedMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Database className="w-4 h-4 mr-2" />
+            )}
+            Reseed Data
+          </Button>
           <Button variant="outline" size="sm" asChild>
             <Link to="/admin/bulk-import">
               <RefreshCcw className="w-4 h-4 mr-2" />
@@ -206,7 +244,20 @@ export default function AdminProducts() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-12">
                   <Package className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-                  <p className="text-muted-foreground">No products found</p>
+                  <p className="text-muted-foreground mb-4">No products found</p>
+                  <Button 
+                    onClick={() => seedMutation.mutate(false)}
+                    disabled={seedMutation.isPending}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    {seedMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Database className="w-4 h-4" />
+                    )}
+                    Seed Sample Products
+                  </Button>
                 </TableCell>
               </TableRow>
             ) : (
