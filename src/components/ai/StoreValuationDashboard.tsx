@@ -268,18 +268,16 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
     return {
       products: products.map(p => ({
         id: p.id,
-        title: p.title,
         price: p.price,
         category: p.category,
-        createdAt: p.createdAt || new Date(),
+        createdAt: (p.createdAt || new Date()).toISOString(),
       })),
       orders: orders.map(o => ({
         id: o.id,
         total: o.total,
-        createdAt: o.createdAt,
+        itemCount: 1,
+        createdAt: o.createdAt.toISOString(),
       })),
-      visitors,
-      timeframeDays,
     };
   }, [products, orders, visitors, timeframeDays]);
 
@@ -349,31 +347,31 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
                 animate={{ opacity: 1, y: 0 }}
                 className="text-5xl md:text-6xl font-bold text-foreground"
               >
-                {formatValuation(valuation.midValue)}
+                {formatValuation(valuation.valuation.mid)}
               </motion.div>
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">
-                  Range: {formatValuation(valuation.lowValue)} - {formatValuation(valuation.highValue)}
+                  Range: {formatValuation(valuation.valuation.low)} - {formatValuation(valuation.valuation.high)}
                 </span>
                 <Badge variant="secondary" className="gap-1">
                   <Shield className="w-3 h-3" />
-                  {valuation.confidence}% confidence
+                  {valuation.valuation.confidence}% confidence
                 </Badge>
               </div>
             </div>
 
             {/* Grade */}
             <div className="flex-shrink-0">
-              <GradeBadge grade={valuation.health.grade} score={valuation.health.score} />
+              <GradeBadge grade={valuation.health.grade} score={valuation.health.overallScore} />
             </div>
           </div>
 
           {/* Valuation Range */}
           <div className="mt-8 pt-6 border-t border-border/50">
             <ValuationRange
-              low={valuation.lowValue}
-              mid={valuation.midValue}
-              high={valuation.highValue}
+              low={valuation.valuation.low}
+              mid={valuation.valuation.mid}
+              high={valuation.valuation.high}
             />
           </div>
         </CardContent>
@@ -383,18 +381,18 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           title="Monthly GMV"
-          value={formatValuation(valuation.metrics.monthlyGMV)}
-          trend={valuation.metrics.monthlyGMV > 5000 ? 'up' : 'neutral'}
-          trendValue={valuation.metrics.monthlyGMV > 5000 ? '+12%' : 'Stable'}
+          value={formatValuation(valuation.metrics.gmvEstimate.monthly)}
+          trend={valuation.metrics.gmvEstimate.monthly > 5000 ? 'up' : 'neutral'}
+          trendValue={valuation.metrics.gmvEstimate.monthly > 5000 ? '+12%' : 'Stable'}
           icon={<ShoppingCart className="w-5 h-5 text-emerald-600" />}
           color="text-emerald-600"
         />
         <MetricCard
           title="Conversion Rate"
-          value={`${valuation.metrics.conversionRate.toFixed(1)}%`}
+          value={`${valuation.metrics.conversionEfficiency.toFixed(1)}%`}
           subtitle="Visitors to buyers"
-          trend={valuation.metrics.conversionRate >= 2 ? 'up' : 'down'}
-          trendValue={valuation.metrics.conversionRate >= 2 ? 'Good' : 'Needs work'}
+          trend={valuation.metrics.conversionEfficiency >= 2 ? 'up' : 'down'}
+          trendValue={valuation.metrics.conversionEfficiency >= 2 ? 'Good' : 'Needs work'}
           icon={<Target className="w-5 h-5 text-blue-600" />}
           color="text-blue-600"
         />
@@ -421,12 +419,29 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <BarChart3 className="w-5 h-5" />
-              Value Breakdown
+              Key Metrics
             </CardTitle>
             <CardDescription>Components contributing to store valuation</CardDescription>
           </CardHeader>
           <CardContent>
-            <BreakdownChart breakdown={valuation.breakdown} total={valuation.midValue} />
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Annual GMV</span>
+                <span className="font-medium">{formatValuation(valuation.metrics.gmvEstimate.annual)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Revenue Multiple</span>
+                <span className="font-medium">{valuation.metrics.revenueMultiple.toFixed(1)}x</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">SKU Depth</span>
+                <span className="font-medium">{valuation.metrics.skuDepth}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Customer LTV</span>
+                <span className="font-medium">${valuation.metrics.customerLifetimeValue.toFixed(0)}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -440,20 +455,21 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
             <CardDescription>Key indicators affecting store health</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {valuation.health.factors.map((factor, index) => (
-              <div key={factor.name} className="flex items-center justify-between">
+            {/* Strengths */}
+            {valuation.health.strengths.map((strength, index) => (
+              <div key={`strength-${index}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-2 h-2 rounded-full',
-                    factor.impact === 'positive' && 'bg-emerald-500',
-                    factor.impact === 'negative' && 'bg-red-500',
-                    factor.impact === 'neutral' && 'bg-amber-500'
-                  )} />
-                  <span className="text-sm">{factor.name}</span>
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-sm">{strength}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Progress value={factor.score} className="w-20 h-2" />
-                  <span className="text-sm font-medium w-8">{factor.score}</span>
+              </div>
+            ))}
+            {/* Weaknesses */}
+            {valuation.health.weaknesses.map((weakness, index) => (
+              <div key={`weakness-${index}`} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-sm">{weakness}</span>
                 </div>
               </div>
             ))}
@@ -462,7 +478,7 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
       </div>
 
       {/* Insights */}
-      {valuation.insights.length > 0 && (
+      {(valuation.health.opportunities.length > 0 || valuation.health.risks.length > 0) && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -473,33 +489,42 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
-              {valuation.insights.map((insight, index) => (
+              {/* Opportunities */}
+              {valuation.health.opportunities.map((opportunity, index) => (
                 <motion.div
-                  key={index}
+                  key={`opp-${index}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={cn(
-                    'p-4 rounded-xl border',
-                    insight.type === 'positive' && 'bg-emerald-500/5 border-emerald-500/20',
-                    insight.type === 'improvement' && 'bg-amber-500/5 border-amber-500/20',
-                    insight.type === 'warning' && 'bg-red-500/5 border-red-500/20'
-                  )}
+                  className="p-4 rounded-xl border bg-amber-500/5 border-amber-500/20"
                 >
                   <div className="flex items-start gap-3">
-                    <div className={cn(
-                      'p-2 rounded-lg',
-                      insight.type === 'positive' && 'bg-emerald-500/10',
-                      insight.type === 'improvement' && 'bg-amber-500/10',
-                      insight.type === 'warning' && 'bg-red-500/10'
-                    )}>
-                      {insight.type === 'positive' && <TrendingUp className="w-4 h-4 text-emerald-600" />}
-                      {insight.type === 'improvement' && <Award className="w-4 h-4 text-amber-600" />}
-                      {insight.type === 'warning' && <Info className="w-4 h-4 text-red-600" />}
+                    <div className="p-2 rounded-lg bg-amber-500/10">
+                      <Award className="w-4 h-4 text-amber-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-sm">{insight.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
+                      <h4 className="font-medium text-sm">Opportunity</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{opportunity}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              {/* Risks */}
+              {valuation.health.risks.map((risk, index) => (
+                <motion.div
+                  key={`risk-${index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-xl border bg-red-500/5 border-red-500/20"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-red-500/10">
+                      <Info className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Risk</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{risk}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -512,7 +537,7 @@ export const StoreValuationDashboard = memo<StoreValuationDashboardProps>(({
       {/* Footer Attribution */}
       <div className="flex items-center justify-center gap-2 pt-4 text-xs text-muted-foreground">
         <Sparkles className="w-3 h-3" />
-        <span>Valuation powered by Express Prime AI • Updated {new Date(valuation.calculatedAt).toLocaleDateString()}</span>
+        <span>Valuation powered by Express Prime AI • Updated {new Date(valuation.timestamp).toLocaleDateString()}</span>
       </div>
     </div>
   );

@@ -57,4 +57,5 @@ export {
   DEFAULT_SHIPPING_PROFILES,
   DEFAULT_RELIABILITY_SCORES,
   DEFAULT_SHIPPING_DAYS,
+  type SupplierTemplate,
 } from './vendorOnboarding';

@@ -40,7 +40,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSmartCollections } from '@/ai/aiHooks';
-import type { SmartCollection, CollectionProduct } from '@/ai/smartCollections';
+import type { SmartCollection, SmartCollectionProduct } from '@/ai/smartCollections';
 
 // ============================================================================
 // TYPES
@@ -101,13 +101,13 @@ const CollectionGradient: Record<string, string> = {
 // ============================================================================
 
 const CollectionProductCard: React.FC<{
-  product: CollectionProduct;
+  product: SmartCollectionProduct;
   onAddToCart?: (id: string) => void;
 }> = memo(({ product, onAddToCart }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const hasDiscount = product.score && product.score > 0.7;
+  const hasDiscount = product.relevanceScore && product.relevanceScore > 0.7;
 
   return (
     <motion.div
@@ -119,15 +119,15 @@ const CollectionProductCard: React.FC<{
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -4 }}
     >
-      <Link to={`/product/${product.id}`}>
+      <Link to={`/product/${product.productId}`}>
         {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-muted">
           {!imageLoaded && (
             <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800" />
           )}
           <motion.img
-            src={product.imageUrl || '/placeholder.svg'}
-            alt={product.title}
+            src={'/placeholder.svg'}
+            alt={product.productId}
             className={cn(
               'w-full h-full object-cover transition-opacity duration-300',
               imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -138,11 +138,11 @@ const CollectionProductCard: React.FC<{
           />
 
           {/* Score badge */}
-          {product.score && product.score > 0.6 && (
+          {product.relevanceScore > 0.6 && (
             <div className="absolute top-2 left-2">
               <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
                 <Sparkles className="w-3 h-3 mr-1" />
-                {Math.round(product.score * 100)}% Match
+                {Math.round(product.relevanceScore * 100)}% Match
               </Badge>
             </div>
           )}
@@ -162,7 +162,7 @@ const CollectionProductCard: React.FC<{
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onAddToCart?.(product.id);
+                    onAddToCart?.(product.productId);
                   }}
                 >
                   <ShoppingCart className="w-4 h-4 mr-1.5" />
@@ -176,14 +176,14 @@ const CollectionProductCard: React.FC<{
         {/* Content */}
         <div className="p-3">
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-            {product.category}
+            {product.contributingFactors[0] || 'Product'}
           </p>
           <h3 className="font-medium text-sm text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-            {product.title}
+            Product {product.productId.slice(-8)}
           </h3>
           <div className="flex items-baseline gap-2">
             <span className="font-bold text-foreground">
-              ${product.price.toFixed(2)}
+              {Math.round(product.relevanceScore * 100)}% Match
             </span>
             {hasDiscount && (
               <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
@@ -239,7 +239,7 @@ const CollectionSection: React.FC<{
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {collection.products.slice(0, productsPerCollection).map((product) => (
           <CollectionProductCard
-            key={product.id}
+            key={product.productId}
             product={product}
             onAddToCart={onAddToCart}
           />
@@ -250,11 +250,11 @@ const CollectionSection: React.FC<{
       <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <LayoutGrid className="w-3.5 h-3.5" />
-          {collection.productCount} products
+          {collection.products.length} products
         </span>
         <span className="flex items-center gap-1">
           <Brain className="w-3.5 h-3.5" />
-          {Math.round(collection.avgScore * 100)}% avg match
+          {Math.round((collection.products.reduce((sum, p) => sum + p.relevanceScore, 0) / collection.products.length || 0) * 100)}% avg match
         </span>
       </div>
     </section>
@@ -303,7 +303,7 @@ const TabsLayout: React.FC<{
                     isActive ? 'bg-white/20 text-white' : 'bg-background'
                   )}
                 >
-                  {collection.productCount}
+                  {collection.products.length}
                 </Badge>
               </TabsTrigger>
             );
@@ -328,7 +328,7 @@ const TabsLayout: React.FC<{
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {collection.products.slice(0, productsPerCollection).map((product) => (
                   <CollectionProductCard
-                    key={product.id}
+                    key={product.productId}
                     product={product}
                     onAddToCart={onAddToCart}
                   />
@@ -373,7 +373,7 @@ const GridLayout: React.FC<{
               <CollectionIcon collectionId={collection.id} className="w-6 h-6" />
               <div>
                 <h3 className="font-bold text-lg">{collection.name}</h3>
-                <p className="text-white/80 text-sm">{collection.productCount} products</p>
+                <p className="text-white/80 text-sm">{collection.products.length} products</p>
               </div>
             </div>
           </div>
@@ -383,7 +383,7 @@ const GridLayout: React.FC<{
             <div className="grid grid-cols-2 gap-3">
               {collection.products.slice(0, Math.min(4, productsPerCollection)).map((product) => (
                 <CollectionProductCard
-                  key={product.id}
+                  key={product.productId}
                   product={product}
                   onAddToCart={onAddToCart}
                 />

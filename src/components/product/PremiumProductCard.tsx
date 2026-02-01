@@ -31,7 +31,11 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTrendingScore, useIntentPrediction, useTrustScore } from '@/ai/aiHooks';
-import type { ProductBadge } from '@/ai/storefrontAutopilot';
+import type { AutopilotBadge } from '@/ai';
+
+// Alias for badge type
+type ProductBadge = AutopilotBadge;
+type BadgeType = ProductBadge['type'];
 
 // ============================================================================
 // TYPES
@@ -62,33 +66,26 @@ export interface PremiumProductCardProps {
 // ============================================================================
 
 const AIBadgeIcon: React.FC<{ badge: ProductBadge }> = ({ badge }) => {
-  const icons: Record<ProductBadge, React.ReactNode> = {
+  const icons: Record<BadgeType, React.ReactNode> = {
     'ai-pick': <Sparkles className="w-3 h-3" />,
     'best-value': <Award className="w-3 h-3" />,
     'trending': <Flame className="w-3 h-3" />,
-    'visual-hero': <Eye className="w-3 h-3" />,
-    'verified': <BadgeCheck className="w-3 h-3" />,
-    'rising': <TrendingUp className="w-3 h-3" />,
+    'premium': <Eye className="w-3 h-3" />,
+    'new': <BadgeCheck className="w-3 h-3" />,
+    'deal': <TrendingUp className="w-3 h-3" />,
+    'hot': <Flame className="w-3 h-3" />,
   };
-  return <>{icons[badge] || <Star className="w-3 h-3" />}</>;
+  return <>{icons[badge.type] || <Star className="w-3 h-3" />}</>;
 };
 
-const AIBadgeLabel: Record<ProductBadge, string> = {
-  'ai-pick': 'AI Pick',
-  'best-value': 'Best Value',
-  'trending': 'Trending',
-  'visual-hero': 'Featured',
-  'verified': 'Verified',
-  'rising': 'Rising',
-};
-
-const AIBadgeColor: Record<ProductBadge, string> = {
+const AIBadgeColor: Record<BadgeType, string> = {
   'ai-pick': 'bg-gradient-to-r from-violet-500 to-purple-500 text-white',
   'best-value': 'bg-gradient-to-r from-emerald-500 to-green-500 text-white',
   'trending': 'bg-gradient-to-r from-orange-500 to-red-500 text-white',
-  'visual-hero': 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
-  'verified': 'bg-gradient-to-r from-green-600 to-emerald-600 text-white',
-  'rising': 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white',
+  'premium': 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
+  'new': 'bg-gradient-to-r from-green-600 to-emerald-600 text-white',
+  'deal': 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white',
+  'hot': 'bg-gradient-to-r from-red-500 to-orange-500 text-white',
 };
 
 // ============================================================================
@@ -360,16 +357,16 @@ export const PremiumProductCard = memo<PremiumProductCardProps>(({
           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[calc(100%-60px)]">
             {badges.map((badge) => (
               <motion.div
-                key={badge}
+                key={badge.type}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className={cn(
                   'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium shadow-sm',
-                  AIBadgeColor[badge]
+                  AIBadgeColor[badge.type]
                 )}
               >
                 <AIBadgeIcon badge={badge} />
-                <span>{AIBadgeLabel[badge]}</span>
+                <span>{badge.label}</span>
               </motion.div>
             ))}
           </div>

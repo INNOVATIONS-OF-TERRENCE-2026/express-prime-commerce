@@ -196,9 +196,9 @@ const TrendingProductCard: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
 
   const signal = product.signal;
-  const trendScore = signal?.trendingScore || 0;
+  const trendScore = signal?.trendScore || 0;
   const velocity = signal?.velocity || 0;
-  const status = signal?.status || 'Stable';
+  const status = signal?.trendStatus || 'Stable';
 
   return (
     <motion.div
@@ -323,8 +323,8 @@ const TrendingSkeleton: React.FC<{ count: number }> = ({ count }) => (
 // ============================================================================
 
 const TrendingStatsBar: React.FC<{ products: TrendingProductWithData[] }> = ({ products }) => {
-  const exploding = products.filter(p => p.signal?.status === 'Exploding').length;
-  const rising = products.filter(p => p.signal?.status === 'Rising').length;
+  const exploding = products.filter(p => p.signal?.trendStatus === 'Exploding').length;
+  const rising = products.filter(p => p.signal?.trendStatus === 'Rising').length;
   const avgVelocity = products.reduce((sum, p) => sum + (p.signal?.velocity || 0), 0) / products.length;
 
   return (

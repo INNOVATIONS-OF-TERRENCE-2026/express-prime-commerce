@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/home/HeroSection';
 import { ShopifyProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
 import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
+import { LeadershipTeam } from '@/components/home/LeadershipTeam';
 import { useShopifyProducts } from '@/hooks/useShopifyProducts';
 import { ShopifyProduct } from '@/lib/shopify';
 import { useMemo, useEffect } from 'react';
@@ -177,6 +178,9 @@ export default function HomePage() {
         products={aiRecommended.length > 0 ? aiRecommended : featuredProducts}
         isLoading={isLoading}
       />
+
+      {/* Leadership Team - Executive Showcase */}
+      <LeadershipTeam variant="hero" />
 
       {/* CTA Section */}
       <CTASection />

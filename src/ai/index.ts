@@ -62,12 +62,13 @@ export {
   setEmbedding,
   batchGetEmbeddings,
   batchSetEmbeddings,
-  deleteEmbedding,
   cleanupCache,
+  clearCache as clearAllEmbeddings,
   getCacheStats,
-  clearAllEmbeddings,
+  hasEmbedding,
+  getCachedProductIds,
   type EmbeddingEntry,
-  type EmbeddingCacheStats,
+  type CacheStats as EmbeddingCacheStats,
 } from './embeddingsCache';
 
 // Trending Detector - Velocity-based trending detection
@@ -77,12 +78,11 @@ export {
   recordAddToCart,
   getTrendingSignal,
   getTopTrending,
-  getAllTrends,
-  getTrendingStatus,
-  resetTrendingData,
+  getAllTrendingSignals as getAllTrends,
+  getStats as getTrendingStatus,
+  reset as resetTrendingData,
   configure as configureTrending,
   type TrendingSignal,
-  type TrendStatus,
   type TrendingConfig,
 } from './trendingDetector';
 
@@ -91,13 +91,11 @@ export {
   analyzePriceSensitivity,
   batchAnalyzePriceSensitivity,
   getUndervaluedProducts,
-  getPriceEfficiency,
-  determinePriceTier,
+  getPriceClusters,
   preloadModel as preloadPriceModel,
   isModelReady as isPriceModelReady,
   type PriceSensitivityResult,
-  type PriceTier,
-  type ValueCategory,
+  type PriceCluster,
 } from './priceSensitivity';
 
 // Visual Saliency - CLIP-based image scoring
@@ -105,11 +103,9 @@ export {
   analyzeVisualSaliency,
   batchAnalyzeVisualSaliency,
   getHeroImages,
-  getVisualScore,
   preloadModel as preloadVisualModel,
   isModelReady as isVisualModelReady,
   type VisualSaliencyResult,
-  type VisualTier,
 } from './visualSaliency';
 
 // Smart Collections - Self-organizing product groups
@@ -118,27 +114,29 @@ export {
   getAllSmartCollections,
   getSmartCollection,
   findSimilarProducts,
-  regenerateCollections,
-  getCollectionStats,
+  refreshCollection,
+  getStats as getCollectionStats,
   type SmartCollection,
-  type CollectionProduct,
-  type CollectionTemplate,
+  type SmartCollectionProduct,
+  type CollectionGenerationConfig,
 } from './smartCollections';
 
 // Storefront Autopilot - Master orchestration
 export {
   runAutopilot,
   configureAutopilot,
-  getAutopilotStatus,
+  getAutopilotStats,
   recordProductImpression,
   recordProductClick,
-  recordProductAddToCart,
-  assignBadges,
   type AutopilotDecisions,
   type AutopilotConfig,
   type AutopilotStats,
-  type ProductBadge,
+  type AutopilotBadge,
+  type AutopilotProduct,
 } from './storefrontAutopilot';
+
+// Re-export ProductBadge as alias
+export type { AutopilotBadge as ProductBadge } from './storefrontAutopilot';
 
 // AI Bootstrap - Initialization & coordination
 export {

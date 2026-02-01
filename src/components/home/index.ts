@@ -11,3 +11,4 @@ export { TrendingVelocityStrip } from './TrendingVelocityStrip';
 export { ReducedChoiceSection } from './ReducedChoiceSection';
 export { SocialProofSection } from './SocialProofSection';
 export { SilentReassuranceFooter } from './SilentReassuranceFooter';
+export { LeadershipTeam } from './LeadershipTeam';

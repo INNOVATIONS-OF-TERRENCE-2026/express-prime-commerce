@@ -122,10 +122,10 @@ export function useTrendingScore(
 
   return {
     signal,
-    score: signal?.trendingScore || 0,
-    status: signal?.status || 'Stable',
-    isExploding: signal?.status === 'Exploding',
-    isTrending: (signal?.trendingScore || 0) > 50,
+    score: signal?.trendScore || 0,
+    status: signal?.trendStatus || 'Stable',
+    isExploding: signal?.trendStatus === 'Exploding',
+    isTrending: (signal?.trendScore || 0) > 0.5,
     recordView,
     recordClick,
   };
@@ -469,7 +469,13 @@ export function usePriceSensitivity(
     let cancelled = false;
     setLoading(true);
 
-    analyzePriceSensitivity(productId, title, price, category, compareAtPrice)
+    analyzePriceSensitivity({
+      id: productId,
+      title,
+      price,
+      productType: category,
+      compareAtPrice,
+    })
       .then(r => {
         if (!cancelled) {
           setResult(r);
