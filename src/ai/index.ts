@@ -376,6 +376,54 @@ export {
 } from './profitGovernor';
 
 // ============================================================================
+// SUPPLY ARBITRAGE ENGINE - AUTONOMOUS MULTI-SUPPLIER INTELLIGENCE (NEW)
+// ============================================================================
+
+export {
+  // Supplier Management
+  registerSupplier,
+  updateSupplierMetrics,
+  getSupplier,
+  getAllSuppliers,
+  getSuppliersForProduct,
+  // Arbitrage Decisions
+  makeArbitrageDecision,
+  routeOrder,
+  // Product Mapping
+  mapProductToSuppliers,
+  getProductMapping,
+  // Learning
+  recordOrderOutcome,
+  getSupplierRankings,
+  // Risk
+  getRiskAlerts,
+  // Logging
+  getDecisionLog as getArbitrageDecisionLog,
+  getDecisionsByProduct,
+  getDecisionsBySupplier,
+  // Analytics
+  getSupplierPerformance,
+  getArbitrageStats,
+  // Config
+  configure as configureArbitrage,
+  getConfig as getArbitrageConfig,
+  // Mock
+  generateMockSuppliers,
+  getMockArbitrageData,
+  // Types
+  type SupplierType,
+  type FulfillmentPriority,
+  type DecisionOutcome,
+  type SupplierProfile,
+  type ProductSupplierMapping,
+  type ArbitrageContext,
+  type ArbitrageDecision,
+  type SupplierPerformanceMetrics,
+  type ArbitrageConfig,
+  type SupplierRiskAlert,
+} from './supplyArbitrage';
+
+// ============================================================================
 // CONVENIENCE EXPORTS
 // ============================================================================
 

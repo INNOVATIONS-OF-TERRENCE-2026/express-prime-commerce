@@ -38,6 +38,8 @@ import {
   Percent,
   PiggyBank,
   LineChart,
+  Trophy,
+  XCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,6 +105,18 @@ import {
   type GovernorDecisionLog,
 } from '@/ai/profitGovernor';
 
+// Import Supply Arbitrage Engine
+import {
+  getMockArbitrageData,
+  getArbitrageStats,
+  getSupplierRankings,
+  getRiskAlerts,
+  getDecisionLog as getArbitrageDecisions,
+  type SupplierProfile,
+  type ArbitrageDecision,
+  type SupplierRiskAlert,
+} from '@/ai/supplyArbitrage';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -167,6 +181,13 @@ export function CommerceIntelligenceDashboard() {
   const governorData = useMemo(() => generateMockGovernorData(), [lastRefresh]);
   const governorStats = useMemo(() => getGovernorStats(), [lastRefresh]);
   const decisionLog = useMemo(() => getDecisionLog(10), [lastRefresh]);
+
+  // Get Supply Arbitrage data
+  const arbitrageData = useMemo(() => getMockArbitrageData(), [lastRefresh]);
+  const arbitrageStats = useMemo(() => getArbitrageStats(), [lastRefresh]);
+  const supplierRankings = useMemo(() => getSupplierRankings(), [lastRefresh]);
+  const supplierAlerts = useMemo(() => getRiskAlerts(), [lastRefresh]);
+  const arbitrageDecisions = useMemo(() => getArbitrageDecisions(10), [lastRefresh]);
 
   const handleRefresh = () => {
     setLastRefresh(new Date());
@@ -311,30 +332,34 @@ export function CommerceIntelligenceDashboard() {
 
       {/* Intelligence Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-6 w-full">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-7 w-full">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs">
             <BarChart3 className="w-4 h-4" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="profit" className="flex items-center gap-2">
+          <TabsTrigger value="profit" className="flex items-center gap-2 text-xs">
             <PiggyBank className="w-4 h-4" />
-            Profit Governor
+            Profit
           </TabsTrigger>
-          <TabsTrigger value="intent" className="flex items-center gap-2">
+          <TabsTrigger value="supply" className="flex items-center gap-2 text-xs">
+            <Package className="w-4 h-4" />
+            Supply
+          </TabsTrigger>
+          <TabsTrigger value="intent" className="flex items-center gap-2 text-xs">
             <Target className="w-4 h-4" />
-            Buyer Intent
+            Intent
           </TabsTrigger>
-          <TabsTrigger value="heatmap" className="flex items-center gap-2">
+          <TabsTrigger value="heatmap" className="flex items-center gap-2 text-xs">
             <Activity className="w-4 h-4" />
             Heatmap
           </TabsTrigger>
-          <TabsTrigger value="trust" className="flex items-center gap-2">
+          <TabsTrigger value="trust" className="flex items-center gap-2 text-xs">
             <Shield className="w-4 h-4" />
             Trust
           </TabsTrigger>
-          <TabsTrigger value="valuation" className="flex items-center gap-2">
+          <TabsTrigger value="valuation" className="flex items-center gap-2 text-xs">
             <DollarSign className="w-4 h-4" />
-            Valuation
+            Value
           </TabsTrigger>
         </TabsList>
 
@@ -659,6 +684,258 @@ export function CommerceIntelligenceDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Supply Arbitrage Tab */}
+        <TabsContent value="supply" className="mt-6 space-y-6">
+          {/* Arbitrage Health Hero */}
+          <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 border-indigo-200 dark:border-indigo-800">
+            <CardContent className="pt-6">
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {arbitrageStats.totalDecisions}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">Total Routing Decisions</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-green-600 dark:text-green-400">
+                    {arbitrageStats.successRate.toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">Fulfillment Success</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-purple-600 dark:text-purple-400">
+                    ${arbitrageStats.avgCostSaving.toFixed(2)}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">Avg Cost Saved/Order</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-amber-600 dark:text-amber-400">
+                    {arbitrageStats.activeSuppliers}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">Active Suppliers</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Supplier Rankings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-amber-500" />
+                  Supplier Rankings
+                </CardTitle>
+                <CardDescription>
+                  Self-learning performance scores updated after each fulfillment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {supplierRankings.slice(0, 6).map((ranking, idx) => (
+                    <div key={ranking.supplierId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <div className={`
+                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                        ${idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
+                          idx === 1 ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' :
+                          idx === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' :
+                          'bg-muted text-muted-foreground'}
+                      `}>
+                        #{idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{ranking.supplierName}</div>
+                        <div className="text-xs text-muted-foreground">{ranking.supplierType}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">{(ranking.overallScore * 100).toFixed(0)}</div>
+                        <div className={`text-xs flex items-center justify-end gap-1 ${
+                          ranking.trend === 'up' ? 'text-green-600' :
+                          ranking.trend === 'down' ? 'text-red-600' : 'text-muted-foreground'
+                        }`}>
+                          {ranking.trend === 'up' ? <TrendingUp className="h-3 w-3" /> :
+                           ranking.trend === 'down' ? <TrendingDown className="h-3 w-3" /> :
+                           <span>—</span>}
+                          {ranking.trend}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Risk Alerts */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  Supplier Risk Alerts
+                </CardTitle>
+                <CardDescription>
+                  Autonomous detection of supply chain vulnerabilities
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {supplierAlerts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-12 w-12 mx-auto text-green-500 mb-3" />
+                    <p className="text-muted-foreground">All suppliers operating normally</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {supplierAlerts.map((alert, idx) => (
+                      <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                        alert.severity === 'critical' ? 'bg-red-50 border-red-500 dark:bg-red-950' :
+                        alert.severity === 'high' ? 'bg-orange-50 border-orange-500 dark:bg-orange-950' :
+                        alert.severity === 'medium' ? 'bg-yellow-50 border-yellow-500 dark:bg-yellow-950' :
+                        'bg-blue-50 border-blue-500 dark:bg-blue-950'
+                      }`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{alert.alertType.replace(/_/g, ' ').toUpperCase()}</div>
+                            <p className="text-xs text-muted-foreground mt-1">{alert.message}</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                              → {alert.recommendation}
+                            </p>
+                          </div>
+                          <Badge variant={
+                            alert.severity === 'critical' ? 'destructive' :
+                            alert.severity === 'high' ? 'destructive' : 'secondary'
+                          } className="text-xs">
+                            {alert.severity}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Arbitrage Decision Log */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-500" />
+                Arbitrage Decision Log
+              </CardTitle>
+              <CardDescription>
+                Human-readable explanations of autonomous supplier routing decisions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {arbitrageDecisions.slice(0, 8).map((decision, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-4 rounded-lg border bg-card">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                      ${decision.approved ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                        'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}
+                    `}>
+                      {decision.approved ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{decision.productName}</span>
+                        <Badge variant="outline" className="text-xs">{decision.orderId}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{decision.reason}</p>
+                      <div className="flex items-center gap-4 mt-2 text-xs">
+                        <span className="text-muted-foreground">
+                          Selected: <span className="font-medium text-foreground">{decision.selectedSupplier}</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          Cost: <span className="font-medium text-green-600">${decision.finalCost.toFixed(2)}</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          Margin: <span className="font-medium text-purple-600">{(decision.expectedMargin * 100).toFixed(1)}%</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          ETA: <span className="font-medium">{decision.estimatedDelivery}</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground text-right shrink-0">
+                      {new Date(decision.timestamp).toLocaleTimeString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Supplier Performance Matrix */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Performance Breakdown</CardTitle>
+                <CardDescription>Weighted scoring factors</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Reliability', weight: '25%', value: arbitrageStats.avgReliability, color: 'bg-green-500' },
+                    { label: 'Speed', weight: '25%', value: arbitrageStats.avgSpeed, color: 'bg-blue-500' },
+                    { label: 'Cost Efficiency', weight: '20%', value: arbitrageStats.avgCostEfficiency, color: 'bg-purple-500' },
+                    { label: 'Margin Contribution', weight: '15%', value: arbitrageStats.avgMarginContribution, color: 'bg-amber-500' },
+                    { label: 'Trust Score', weight: '15%', value: arbitrageStats.avgTrustScore, color: 'bg-indigo-500' },
+                  ].map((metric) => (
+                    <div key={metric.label}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>{metric.label} <span className="text-muted-foreground">({metric.weight})</span></span>
+                        <span className="font-medium">{(metric.value * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${metric.color} transition-all duration-500`}
+                          style={{ width: `${metric.value * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Arbitrage Intelligence</CardTitle>
+                <CardDescription>System learning metrics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-2xl font-bold text-blue-600">{arbitrageStats.decisionsToday}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Decisions Today</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-2xl font-bold text-green-600">{arbitrageStats.switchesThisWeek}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Supplier Switches</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-2xl font-bold text-purple-600">${arbitrageStats.totalSavingsThisMonth.toFixed(0)}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Monthly Savings</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-2xl font-bold text-amber-600">{arbitrageStats.learningIterations}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Learning Iterations</div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800">
+                  <div className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                    🧠 Self-Learning Active
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supplier scores update automatically after each order outcome using exponential moving average (α=0.1)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Buyer Intent Tab */}
