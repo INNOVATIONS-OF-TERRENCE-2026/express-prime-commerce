@@ -4,22 +4,8 @@ import { Button } from '@/components/ui/button';
 import { ShopifyProductGrid } from '@/components/product/ShopifyProductGrid';
 import { ShopifyProduct } from '@/lib/shopify';
 import { cn } from '@/lib/utils';
-import { ProductCardProps } from '@/components/product/ProductCard';
-import { ProductGrid } from '@/components/product/ProductGrid';
 
-// Legacy interface for backward compatibility
-interface ProductSectionProps {
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  products: ProductCardProps[];
-  isLoading: boolean;
-  viewAllLink: string;
-  bgColor?: string;
-  gradient?: boolean;
-}
-
-// New interface for Shopify products
+// Shopify product section interface
 interface ShopifyProductSectionProps {
   title: string;
   subtitle: string;
@@ -31,8 +17,8 @@ interface ShopifyProductSectionProps {
   gradient?: boolean;
 }
 
-// Transformed product section (uses transformed ProductCardProps)
-export function ProductSection({ 
+// Main Shopify product section component
+export function ShopifyProductSection({ 
   title, 
   subtitle, 
   icon, 
@@ -41,7 +27,7 @@ export function ProductSection({
   viewAllLink,
   bgColor = 'bg-background',
   gradient = false,
-}: ProductSectionProps) {
+}: ShopifyProductSectionProps) {
   return (
     <section className={cn(
       'py-16 md:py-20 relative',
@@ -76,7 +62,7 @@ export function ProductSection({
         </div>
 
         {/* Products Grid */}
-        <ProductGrid products={products} isLoading={isLoading} />
+        <ShopifyProductGrid products={products} isLoading={isLoading} />
 
         {/* Mobile View All */}
         <div className="text-center mt-10 md:hidden">
@@ -94,7 +80,7 @@ export function ProductSection({
 
 // Featured AI Section with special styling
 interface AISectionProps {
-  products: ProductCardProps[];
+  products: ShopifyProduct[];
   isLoading: boolean;
 }
 
@@ -122,7 +108,7 @@ export function AIRecommendedSection({ products, isLoading }: AISectionProps) {
         </div>
 
         {/* Products */}
-        <ProductGrid products={products} isLoading={isLoading} />
+        <ShopifyProductGrid products={products} isLoading={isLoading} />
 
         {/* CTA */}
         <div className="text-center mt-12">
