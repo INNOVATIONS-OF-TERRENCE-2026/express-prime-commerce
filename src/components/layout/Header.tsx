@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/contexts/CartContext';
+import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { PRODUCT_CATEGORIES } from '@/lib/constants';
@@ -32,7 +32,8 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { itemCount, openCart } = useCart();
+  const { itemCount, openCart } = useCartStore();
+  const cartItemCount = itemCount();
   const { user, isAdmin, signOut } = useAuth();
   const { open: searchOpen, setOpen: setSearchOpen } = useSearchModal();
 
@@ -186,9 +187,9 @@ export function Header() {
                 onClick={openCart}
               >
                 <ShoppingCart className="w-5 h-5" />
-                {itemCount > 0 && (
+                {cartItemCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-accent-foreground text-xs font-bold rounded-full flex items-center justify-center animate-pulse-ring">
-                    {itemCount > 99 ? '99+' : itemCount}
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
                   </span>
                 )}
               </Button>

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { CartDrawer } from './CartDrawer';
+import { ShopifyCartDrawer } from './ShopifyCartDrawer';
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,7 +16,7 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
         {children}
       </main>
       {showFooter && <Footer />}
-      <CartDrawer />
+      <ShopifyCartDrawer />
     </div>
   );
 }

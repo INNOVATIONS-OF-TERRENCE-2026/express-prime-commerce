@@ -9,6 +9,14 @@ import { lazy, Suspense } from "react";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+// Hooks
+import { useCartSync } from "@/hooks/useCartSync";
+
+// Cart sync wrapper component
+function CartSyncProvider({ children }: { children: React.ReactNode }) {
+  useCartSync();
+  return <>{children}</>;
+}
 // Layout wrapper for lazy loading
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -52,34 +60,36 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                {/* Public Storefront Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/collections" element={<CollectionsPage />} />
-                <Route path="/collections/:collection" element={<CollectionsPage />} />
-                <Route path="/product/:handle" element={<ProductDetailPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/order-tracking" element={<OrderTrackingPage />} />
-                <Route path="/support" element={<SupportPage />} />
-                <Route path="/policies/:type" element={<PolicyPage />} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/products" element={<AdminProducts />} />
-                <Route path="/admin/orders" element={<AdminOrders />} />
-                <Route path="/admin/ai-decisions" element={<AdminAIDecisions />} />
-                <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-                
-                {/* Catch-all 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+          <CartSyncProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  {/* Public Storefront Routes */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/collections" element={<CollectionsPage />} />
+                  <Route path="/collections/:collection" element={<CollectionsPage />} />
+                  <Route path="/product/:handle" element={<ProductDetailPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                  <Route path="/support" element={<SupportPage />} />
+                  <Route path="/policies/:type" element={<PolicyPage />} />
+                  
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/products" element={<AdminProducts />} />
+                  <Route path="/admin/orders" element={<AdminOrders />} />
+                  <Route path="/admin/ai-decisions" element={<AdminAIDecisions />} />
+                  <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
+                  <Route path="/admin/settings" element={<AdminSettings />} />
+                  
+                  {/* Catch-all 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </CartSyncProvider>
         </CartProvider>
       </AuthProvider>
     </TooltipProvider>
