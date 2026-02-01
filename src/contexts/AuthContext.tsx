@@ -2,6 +2,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
+// Master Admin Emails - Full Admin Control
+const ADMIN_EMAILS = [
+  'admin@terrencemilliner.com',
+  'contact@tiarahasthekey.com',
+];
+
 interface AuthUser extends User {
   role?: 'founder' | 'admin' | 'operator' | null;
 }
@@ -87,7 +93,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  const isAdmin = user?.role === 'founder' || user?.role === 'admin';
+  // Admin check: Role-based OR hardcoded master admin emails
+  const isAdmin = 
+    user?.role === 'founder' || 
+    user?.role === 'admin' ||
+    (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
 
   return (
     <AuthContext.Provider

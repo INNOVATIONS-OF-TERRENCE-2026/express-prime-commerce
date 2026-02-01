@@ -108,13 +108,14 @@ import {
 // Import Supply Arbitrage Engine
 import {
   getMockArbitrageData,
-  getArbitrageStats,
+  getExtendedArbitrageStats,
   getSupplierRankings,
   getRiskAlerts,
-  getDecisionLog as getArbitrageDecisions,
+  getDashboardDecisions,
   type SupplierProfile,
-  type ArbitrageDecision,
+  type DashboardArbitrageDecision,
   type SupplierRiskAlert,
+  type ExtendedArbitrageStats,
 } from '@/ai/supplyArbitrage';
 
 // ============================================================================
@@ -184,10 +185,10 @@ export function CommerceIntelligenceDashboard() {
 
   // Get Supply Arbitrage data
   const arbitrageData = useMemo(() => getMockArbitrageData(), [lastRefresh]);
-  const arbitrageStats = useMemo(() => getArbitrageStats(), [lastRefresh]);
+  const arbitrageStats = useMemo(() => getExtendedArbitrageStats(), [lastRefresh]);
   const supplierRankings = useMemo(() => getSupplierRankings(), [lastRefresh]);
   const supplierAlerts = useMemo(() => getRiskAlerts(), [lastRefresh]);
-  const arbitrageDecisions = useMemo(() => getArbitrageDecisions(10), [lastRefresh]);
+  const arbitrageDecisions = useMemo(() => getDashboardDecisions(10), [lastRefresh]);
 
   const handleRefresh = () => {
     setLastRefresh(new Date());
@@ -735,7 +736,7 @@ export function CommerceIntelligenceDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   {supplierRankings.slice(0, 6).map((ranking, idx) => (
-                    <div key={ranking.supplierId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div key={ranking.supplier.supplierId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                       <div className={`
                         w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
                         ${idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' :
@@ -746,11 +747,11 @@ export function CommerceIntelligenceDashboard() {
                         #{idx + 1}
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium">{ranking.supplierName}</div>
-                        <div className="text-xs text-muted-foreground">{ranking.supplierType}</div>
+                        <div className="font-medium">{ranking.supplier.supplierName}</div>
+                        <div className="text-xs text-muted-foreground">{ranking.supplier.supplierType}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">{(ranking.overallScore * 100).toFixed(0)}</div>
+                        <div className="font-bold">{ranking.overallScore}</div>
                         <div className={`text-xs flex items-center justify-end gap-1 ${
                           ranking.trend === 'up' ? 'text-green-600' :
                           ranking.trend === 'down' ? 'text-red-600' : 'text-muted-foreground'
