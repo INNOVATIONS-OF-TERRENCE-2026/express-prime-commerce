@@ -1,0 +1,44 @@
+# Profit Protection Cron - Hourly Scheduler
+# Calls the profit-protection-cron edge function every hour to analyze products
+# and flag/pause/kill unprofitable items
+
+name: Profit Protection Cron
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  run-profit-protection:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Call Profit Protection Edge Function
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/profit-protection-cron" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "❌ Profit protection failed with status $http_code"
+            exit 1
+          fi
+          
+          echo "✅ Profit protection completed successfully"
+          echo "$body" | jq '.' || echo "$body"
+
+      - name: Log Results
+        if: success()
+        run: |
+          echo "🛡️ Profit Protection Analysis Complete"
+          echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
