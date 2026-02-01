@@ -699,10 +699,10 @@ function findMatchingSequence(cart: AbandonedCart): RecoverySequence | null {
           if (value !== condition.value) matches = false;
           break;
         case 'greaterThan':
-          if (typeof value !== 'number' || value <= condition.value) matches = false;
+          if (typeof value !== 'number' || typeof condition.value !== 'number' || value <= condition.value) matches = false;
           break;
         case 'lessThan':
-          if (typeof value !== 'number' || value >= condition.value) matches = false;
+          if (typeof value !== 'number' || typeof condition.value !== 'number' || value >= condition.value) matches = false;
           break;
         case 'contains':
           if (typeof value !== 'string' || !value.includes(String(condition.value))) matches = false;

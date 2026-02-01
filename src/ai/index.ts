@@ -431,29 +431,28 @@ export {
 export {
   calculateOptimalPrice,
   forecastDemand,
-  updatePriceElasticity,
+  updateElasticity,
   batchPricingAnalysis,
   getPricingStats,
   generateMockPricingData,
   type PricingRule,
-  type DynamicPrice,
+  type PricingDecision,
   type DemandForecast,
-  type PriceElasticity,
-  type PsychologicalPricing,
+  type PricingContext,
+  type PricingConfig,
 } from './dynamicPricing';
 
 // Abandoned Cart Recovery
 export {
   trackCart,
-  markCartAsAbandoned,
+  markAsAbandoned,
   generateRecoveryEmail,
   processPendingEmails,
   getRecoveryStats,
-  generateMockRecoveryData,
-  type TrackedCart,
+  type AbandonedCart,
   type RecoveryEmail,
-  type CartRecoveryStats,
-  type EmailSequenceType,
+  type RecoveryStats,
+  type RecoveryEmailType,
 } from './abandonedCartRecovery';
 
 // Customer Lifetime Value Predictor
@@ -464,12 +463,12 @@ export {
   determineCustomerTier,
   batchPredictCLV,
   getCLVStats,
-  generateMockCLVData,
+  generateMockCustomerData,
   type CustomerProfile,
   type CLVPrediction,
   type RFMScores,
   type ChurnAnalysis,
-  type CustomerSegment,
+  type CustomerTier,
 } from './customerLifetimeValue';
 
 // ============================================================================
@@ -482,17 +481,16 @@ export {
   trackPageView,
   trackProductView,
   trackAddToCart,
-  trackPurchase,
-  trackEvent,
+  trackCheckoutStart,
+  trackOrderCompleted,
   getLiveMetrics,
-  startRealTimeSubscriptions,
-  stopRealTimeSubscriptions,
-  getRealTimeStats,
-  generateMockRealTimeData,
-  type RealTimeMetrics,
+  registerVisitor,
+  updateVisitor,
+  removeVisitor,
+  type LiveMetrics,
   type LiveVisitor,
-  type ConversionFunnel,
-  type RealTimeAlert,
+  type FunnelMetrics,
+  type RealtimeAlert,
 } from './realTimeAnalytics';
 
 // Performance Optimization
@@ -554,15 +552,15 @@ export {
 // AI Product Description Generator
 export {
   generateDescription,
-  generateDescriptionVariants,
-  optimizeForSEO,
+  generateVariants,
+  optimizeForSeo,
   rewriteWithTone,
-  getDescriptionGeneratorStats,
-  generateMockDescriptionData,
+  getGeneratorStats,
+  generateMockDescriptions,
   type GeneratedDescription,
   type DescriptionTone,
-  type SEOScore,
   type DescriptionVariant,
+  type GeneratorStats,
 } from './productDescriptionGenerator';
 
 // Visual Search Engine
@@ -573,8 +571,8 @@ export {
   getVisualSearchStats,
   generateMockVisualSearchData,
   type VisualSearchResult,
-  type ColorMatch,
-  type StyleMatch,
+  type VisualMatch,
+  type ColorInfo,
 } from './visualSearch';
 
 // Multi-Currency Support
@@ -584,11 +582,10 @@ export {
   getLocalizedPricing,
   getPriceForRegion,
   detectUserRegion,
-  refreshExchangeRates,
+  updateExchangeRates,
   getCurrencyStats,
-  generateMockCurrencyData,
   type CurrencyCode,
-  type RegionalPricing,
+  type CurrencyInfo,
   type ExchangeRate,
 } from './multiCurrency';
 
@@ -597,11 +594,10 @@ export {
   createSubscription,
   createMembership,
   upgradeMembership,
-  downgradeMembership,
   addMembershipPoints,
-  redeemMembershipPoints,
-  createSubscriptionBox,
-  calculateMemberPrice,
+  pauseSubscription,
+  resumeSubscription,
+  cancelSubscription,
   getSubscriptionAnalytics,
   generateMockSubscriptionData,
   type Subscription,

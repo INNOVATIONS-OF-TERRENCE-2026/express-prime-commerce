@@ -32,7 +32,8 @@ export default function ProductDetailPage() {
   const { handle } = useParams<{ handle: string }>();
   const { product, isLoading, error } = useProduct(handle || '');
   const { products: relatedProducts } = useProducts({ limit: 8 });
-  const { addItem, isLoading: isAddingToCart } = useCart();
+  const { addItem } = useCart();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
@@ -83,19 +84,26 @@ export default function ProductDetailPage() {
     images.push(product.image_url);
   }
   if (product.images && Array.isArray(product.images)) {
-    images.push(...product.images.filter((img: string) => img && img !== product.image_url));
+    const additionalImages = product.images
+      .filter((img): img is string => typeof img === 'string' && img !== product.image_url);
+    images.push(...additionalImages);
   }
 
-  const handleAddToCart = () => {
-    addItem({
-      productId: product.id,
-      title: product.title,
-      price,
-      compareAtPrice: compareAtPrice || undefined,
-      quantity,
-      image: product.image_url || undefined,
-      handle: product.handle || product.id,
-    });
+  const handleAddToCart = async () => {
+    setIsAddingToCart(true);
+    try {
+      addItem({
+        productId: product.id,
+        title: product.title,
+        price,
+        compareAtPrice: compareAtPrice || undefined,
+        quantity,
+        image: product.image_url || undefined,
+        handle: product.handle || product.id,
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const tags = product.tags || [];
