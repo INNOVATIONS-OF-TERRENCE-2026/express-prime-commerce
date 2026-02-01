@@ -4,7 +4,7 @@ export const BRAND = {
   name: 'Express Prime',
   tagline: 'Autonomous AI Commerce Engine',
   description: 'Premium products powered by intelligent automation',
-  email: 'support@theexpressprime.com',
+  email: 'admin@terrencemilliner.com',
   phone: '1-800-EXPRESS',
   domain: 'theexpressprime.com',
   url: 'https://theexpressprime.com',

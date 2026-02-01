@@ -151,6 +151,60 @@ export type Database = {
         }
         Relationships: []
       }
+      live_visitors: {
+        Row: {
+          cart_items: number | null
+          cart_value: number | null
+          city: string | null
+          country: string | null
+          current_page: string | null
+          device_type: string | null
+          first_seen: string | null
+          id: string
+          is_active: boolean | null
+          last_seen: string | null
+          page_views: number | null
+          referrer: string | null
+          session_id: string
+          user_id: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          cart_items?: number | null
+          cart_value?: number | null
+          city?: string | null
+          country?: string | null
+          current_page?: string | null
+          device_type?: string | null
+          first_seen?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen?: string | null
+          page_views?: number | null
+          referrer?: string | null
+          session_id: string
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          cart_items?: number | null
+          cart_value?: number | null
+          city?: string | null
+          country?: string | null
+          current_page?: string | null
+          device_type?: string | null
+          first_seen?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen?: string | null
+          page_views?: number | null
+          referrer?: string | null
+          session_id?: string
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           cancelled_at: string | null
@@ -410,6 +464,135 @@ export type Database = {
         }
         Relationships: []
       }
+      realtime_alerts: {
+        Row: {
+          actual_value: number | null
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          order_id: string | null
+          product_id: string | null
+          severity: string
+          threshold_value: number | null
+          title: string
+        }
+        Insert: {
+          actual_value?: number | null
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          product_id?: string | null
+          severity?: string
+          threshold_value?: number | null
+          title: string
+        }
+        Update: {
+          actual_value?: number | null
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          order_id?: string | null
+          product_id?: string | null
+          severity?: string
+          threshold_value?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realtime_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_analytics"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "realtime_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realtime_analytics: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          device_type: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_url: string | null
+          product_id: string | null
+          quantity: number | null
+          referrer: string | null
+          revenue: number | null
+          session_id: string | null
+          user_id: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          referrer?: string | null
+          revenue?: number | null
+          session_id?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          referrer?: string | null
+          revenue?: number | null
+          session_id?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realtime_analytics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_analytics"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "realtime_analytics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopify_installations: {
         Row: {
           access_token_encrypted: string | null
@@ -601,6 +784,7 @@ export type Database = {
           updated_count: number
         }[]
       }
+      get_live_metrics: { Args: never; Returns: Json }
       has_any_role: { Args: never; Returns: boolean }
       has_role: {
         Args: {
@@ -624,6 +808,30 @@ export type Database = {
           p_tags: string[]
           p_title: string
           p_vendor: string
+        }
+        Returns: string
+      }
+      track_analytics_event: {
+        Args: {
+          p_event_type: string
+          p_metadata?: Json
+          p_page_url?: string
+          p_product_id?: string
+          p_revenue?: number
+          p_session_id?: string
+          p_visitor_id?: string
+        }
+        Returns: string
+      }
+      upsert_live_visitor: {
+        Args: {
+          p_cart_items?: number
+          p_cart_value?: number
+          p_country?: string
+          p_current_page?: string
+          p_device_type?: string
+          p_session_id: string
+          p_visitor_id?: string
         }
         Returns: string
       }
