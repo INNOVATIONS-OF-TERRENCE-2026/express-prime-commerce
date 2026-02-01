@@ -264,7 +264,7 @@ export default function AboutPage() {
       {/* Trust Section */}
       <section className="py-16 px-4 bg-slate-50">
         <div className="container mx-auto">
-          <TrustBadges variant="detailed" />
+          <TrustBadges className="max-w-5xl mx-auto" />
         </div>
       </section>
 
