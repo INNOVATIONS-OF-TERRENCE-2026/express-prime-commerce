@@ -6,11 +6,38 @@ import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
 import { useShopifyProducts } from '@/hooks/useShopifyProducts';
 import { ShopifyProduct } from '@/lib/shopify';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
+import { AIPicksSection, CuratedCarousel } from '@/components/ai';
+import { useAIInitializer } from '@/hooks/useAIRanking';
+import type { ProductInput } from '@/ai';
 
 export default function HomePage() {
+  // Initialize AI ranker early
+  const { initialize } = useAIInitializer();
+  
+  useEffect(() => {
+    // Preload AI model in background
+    initialize();
+  }, [initialize]);
+
   // Fetch all products directly from Shopify Storefront API
   const { data: allProducts = [], isLoading } = useShopifyProducts({ limit: 50 });
+
+  // Convert Shopify products to AI ProductInput format
+  const aiProductInputs: ProductInput[] = useMemo(() => {
+    return allProducts.map((p) => ({
+      id: p.node.id,
+      title: p.node.title,
+      description: p.node.description || null,
+      product_type: p.node.productType || null,
+      price: parseFloat(p.node.priceRange?.minVariantPrice?.amount || '0'),
+      compare_at_price: p.node.compareAtPriceRange?.minVariantPrice?.amount
+        ? parseFloat(p.node.compareAtPriceRange.minVariantPrice.amount)
+        : null,
+      vendor: p.node.vendor || null,
+      tags: p.node.tags || null,
+    }));
+  }, [allProducts]);
 
   // Filter products by type for category sections
   const productsByType = useMemo(() => {
@@ -75,6 +102,33 @@ export default function HomePage() {
           <TrustBadges />
         </div>
       </section>
+
+      {/* AI Picks Section - NEW */}
+      {aiProductInputs.length > 0 && (
+        <section className="py-6 md:py-10 bg-gradient-to-b from-amber-50/30 to-transparent dark:from-amber-950/10">
+          <div className="container mx-auto px-4">
+            <AIPicksSection
+              products={aiProductInputs}
+              count={4}
+              title="AI Picks"
+              subtitle="Intelligently curated for maximum value"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Curated Carousel - NEW */}
+      {aiProductInputs.length > 4 && (
+        <section className="border-y border-border/50 bg-muted/20">
+          <div className="container mx-auto">
+            <CuratedCarousel
+              products={aiProductInputs}
+              count={8}
+              title="Curated by AI"
+            />
+          </div>
+        </section>
+      )}
 
       {/* Featured Products */}
       <ShopifyProductSection
