@@ -5,7 +5,7 @@
  * Self-optimizing, AI-driven storefront intelligence
  * 
  * @module ai
- * @version 2.0.0
+ * @version 3.0.0 - Commerce Intelligence Edition
  */
 
 // ============================================================================
@@ -53,7 +53,183 @@ export {
 } from './productRanker';
 
 // ============================================================================
-// ADVANCED AI MODULES
+// BUYER INTENT PREDICTION (NEW)
+// ============================================================================
+
+export {
+  recordHoverStart,
+  recordHoverEnd,
+  recordViewStart,
+  recordViewEnd,
+  recordClick as recordIntentClick,
+  recordScroll,
+  recordCartHover,
+  recordCheckoutStart,
+  recordCheckoutAbandon,
+  getIntentProfile,
+  getIntentProbability,
+  getHighIntentProducts,
+  getSessionIntent,
+  getNudgeRecommendation,
+  applyDecay,
+  configure as configureIntent,
+  resetIntentData,
+  getIntentStats,
+  startDecayTimer,
+  stopDecayTimer,
+  type BehaviorSignal,
+  type IntentProfile,
+  type IntentStage,
+  type NudgeType,
+  type IntentConfig,
+  type SessionIntent,
+} from './buyerIntent';
+
+// ============================================================================
+// CONVERSION HEATMAP (NEW)
+// ============================================================================
+
+export {
+  registerZone,
+  unregisterZone,
+  recordImpression as recordZoneImpression,
+  recordClick as recordZoneClick,
+  recordHover as recordZoneHover,
+  recordScrollDepth,
+  recordExit as recordZoneExit,
+  recordConversion as recordZoneConversion,
+  getZone,
+  getAllZones,
+  getHeatmapSnapshot,
+  identifyFrictionPoints as getFrictionPoints,
+  getTopPerformers as getTopPerformingZones,
+  getUnderperformers as getUnderperformingZones,
+  getScrollDepthData,
+  getZonesByHeat,
+  getHeatColor,
+  configure as configureHeatmap,
+  startSession as startHeatmapSession,
+  type HeatZone,
+  type ZoneMetrics,
+  type HeatLevel,
+  type ScrollDepthData,
+  type FrictionPoint,
+  type FrictionType,
+  type HeatmapSnapshot,
+  type HeatmapConfig,
+} from './conversionHeatmap';
+
+// ============================================================================
+// PRODUCT NAMING OPTIMIZER (NEW)
+// ============================================================================
+
+export {
+  analyzeTitle as analyzeProductName,
+  batchAnalyzeTitles as batchAnalyzeNames,
+  getQuickTitleScore as scoreTitleQuality,
+  getProductsNeedingImprovement,
+  preloadModel as preloadNamingModel,
+  isModelReady as isNamingModelReady,
+  configure as configureNaming,
+  clearCache as clearNamingCache,
+  getNamingStats,
+  type NamingAnalysis,
+  type TitleSuggestion,
+  type SuggestionType,
+  type ExtractedKeyword,
+  type NamingIssue,
+  type IssueType,
+  type NamingConfig,
+  type CategorySemantics,
+} from './productNaming';
+
+// ============================================================================
+// BRAND TRUST SCORING (NEW)
+// ============================================================================
+
+export {
+  calculateTrustScore,
+  batchCalculateTrustScores,
+  getTrustScore,
+  getVerifiedPicks,
+  getProductsByTier,
+  getProductsWithConcerns,
+  getTrustTierColor,
+  getTrustBadgeIcon,
+  configure as configureTrust,
+  clearCache as clearTrustCache,
+  getTrustStats,
+  type TrustScore,
+  type TrustSignals,
+  type TrustTier,
+  type TrustBadge,
+  type TrustConcern,
+  type ConcernType,
+  type ProductTrustInput,
+  type TrustConfig,
+} from './brandTrust';
+
+// ============================================================================
+// STORE VALUATION ENGINE (NEW)
+// ============================================================================
+
+export {
+  calculateValuation as calculateStoreValuation,
+  getLastValuation,
+  getQuickValuation,
+  formatValuation,
+  getGradeColor as getValuationGradeColor,
+  configure as configureValuation,
+  exportValuationReport,
+  type StoreValuation,
+  type ValuationMetrics,
+  type StoreHealth,
+  type StoreGrade,
+  type GrowthTrajectory,
+  type MarketComparable,
+  type PitchDeckMetrics,
+  type ValuationInput,
+  type ProductValuationData,
+} from './storeValuation';
+
+// ============================================================================
+// STORE IQ SCORE SYSTEM (NEW)
+// ============================================================================
+
+export {
+  calculateStoreIQ,
+  generateMockInputData,
+  getCalculationStatus,
+  invalidateCache,
+  calculateDemandIntelligence,
+  calculateConversionIntelligence,
+  calculateProductIntelligence,
+  calculateTrustIntelligence,
+  calculateOperationalIntelligence,
+  calculateScaleIntelligence,
+  type StoreIQOutput,
+  type StoreIQInputData,
+  type DimensionBreakdown,
+  type DemandIntelligence,
+  type ConversionIntelligence,
+  type ProductIntelligence,
+  type TrustIntelligence,
+  type OperationalIntelligence,
+  type ScaleIntelligence,
+  type StoreIQGrade,
+  type ProductDataPoint,
+  type TrendingDataPoint,
+  type CartDataPoint,
+  type OperationalMetrics,
+  DIMENSION_WEIGHTS,
+  SCORE_THRESHOLDS,
+  getGradeFromScore,
+  getGradeColor,
+  getScoreStatus,
+} from './storeIQ';
+
+// ============================================================================
+// ADVANCED AI MODULES (EXISTING)
 // ============================================================================
 
 // Embeddings Cache - IndexedDB persistence for embeddings
