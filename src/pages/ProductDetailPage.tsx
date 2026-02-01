@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Bot,
   Loader2,
-  ImageOff
+  Sparkles
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -23,19 +23,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ShopifyProductGrid } from '@/components/product/ShopifyProductGrid';
-import { useShopifyProduct, useShopifyProducts } from '@/hooks/useShopifyProducts';
-import { useCartStore } from '@/stores/cartStore';
+import { ProductGrid } from '@/components/product/ProductGrid';
+import { useProduct, useProducts } from '@/hooks/useProducts';
+import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
 
 export default function ProductDetailPage() {
   const { handle } = useParams<{ handle: string }>();
-  const { data: product, isLoading, error } = useShopifyProduct(handle || '');
-  const { data: relatedProducts } = useShopifyProducts({ limit: 4 });
-  const { addItem, isLoading: isAddingToCart } = useCartStore();
+  const { product, isLoading, error } = useProduct(handle || '');
+  const { products: relatedProducts } = useProducts({ limit: 8 });
+  const { addItem, isLoading: isAddingToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -71,45 +70,35 @@ export default function ProductDetailPage() {
     );
   }
 
-  // Extract images from Shopify product
-  const images = product.images?.edges?.map(edge => edge.node.url) || [];
-  
-  // Get variants
-  const variants = product.variants?.edges || [];
-  const selectedVariant = variants[selectedVariantIndex]?.node;
-  
-  // Get prices
-  const price = selectedVariant?.price?.amount 
-    ? parseFloat(selectedVariant.price.amount)
-    : parseFloat(product.priceRange?.minVariantPrice?.amount || '0');
-  
-  const compareAtPrice = selectedVariant?.compareAtPrice?.amount
-    ? parseFloat(selectedVariant.compareAtPrice.amount)
-    : product.compareAtPriceRange?.minVariantPrice?.amount
-      ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
-      : null;
-
+  // Get product data from Supabase
+  const price = product.price || 0;
+  const compareAtPrice = product.compare_at_price;
   const discount = compareAtPrice && compareAtPrice > price
     ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
 
-  const currencyCode = selectedVariant?.price?.currencyCode || product.priceRange?.minVariantPrice?.currencyCode || 'USD';
+  // Handle images - could be single URL or array
+  const images: string[] = [];
+  if (product.image_url) {
+    images.push(product.image_url);
+  }
+  if (product.images && Array.isArray(product.images)) {
+    images.push(...product.images.filter((img: string) => img && img !== product.image_url));
+  }
 
-  const handleAddToCart = async () => {
-    if (!selectedVariant) return;
-    
-    await addItem({
-      product: { node: product },
-      variantId: selectedVariant.id,
-      variantTitle: selectedVariant.title,
-      price: selectedVariant.price,
+  const handleAddToCart = () => {
+    addItem({
+      productId: product.id,
+      title: product.title,
+      price,
+      compareAtPrice: compareAtPrice || undefined,
       quantity,
-      selectedOptions: selectedVariant.selectedOptions || [],
+      image: product.image_url || undefined,
+      handle: product.handle || product.id,
     });
   };
 
-  // Get product options (Size, Color, etc.)
-  const options = product.options || [];
+  const tags = product.tags || [];
 
   return (
     <Layout>
@@ -135,8 +124,8 @@ export default function ProductDetailPage() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-secondary/20">
-                  <ImageOff className="w-24 h-24 text-muted-foreground/30" />
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/20 to-secondary/5">
+                  <Sparkles className="w-24 h-24 text-muted-foreground/30" />
                 </div>
               )}
             </div>
@@ -164,20 +153,23 @@ export default function ProductDetailPage() {
           <div className="space-y-6">
             {/* Badges */}
             <div className="flex items-center gap-2 flex-wrap">
-              {product.tags?.includes('trending') && (
+              {tags.includes('trending') && (
                 <Badge className="bg-[#D4AF37] text-black">🔥 Trending</Badge>
               )}
-              {product.tags?.includes('bestseller') && (
+              {tags.includes('bestseller') && (
                 <Badge className="bg-primary">⭐ Best Seller</Badge>
               )}
-              {product.tags?.includes('new') && (
+              {tags.includes('new') && (
                 <Badge className="bg-green-500">✨ New</Badge>
               )}
-              {product.tags?.includes('ai-pick') && (
+              {tags.includes('ai-pick') && (
                 <Badge variant="outline" className="gap-1">
                   <Bot className="w-3 h-3" />
                   AI Pick
                 </Badge>
+              )}
+              {discount > 0 && (
+                <Badge className="bg-red-500">-{discount}% OFF</Badge>
               )}
             </div>
 
@@ -190,56 +182,26 @@ export default function ProductDetailPage() {
               
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-primary">
-                  {currencyCode === 'USD' ? '$' : currencyCode} {price.toFixed(2)}
+                  ${price.toFixed(2)}
                 </span>
                 {compareAtPrice && compareAtPrice > price && (
-                  <>
-                    <span className="text-xl text-muted-foreground line-through">
-                      ${compareAtPrice.toFixed(2)}
-                    </span>
-                    <Badge className="bg-red-500">-{discount}%</Badge>
-                  </>
+                  <span className="text-xl text-muted-foreground line-through">
+                    ${compareAtPrice.toFixed(2)}
+                  </span>
                 )}
               </div>
             </div>
 
             {/* Description */}
             <p className="text-muted-foreground leading-relaxed">
-              {product.description}
+              {product.description || 'No description available for this product.'}
             </p>
 
-            {/* Variant Options */}
-            {options.length > 0 && options[0].values.length > 1 && (
-              <div className="space-y-4">
-                {options.map((option, optionIndex) => (
-                  <div key={option.name}>
-                    <label className="text-sm font-medium mb-2 block">{option.name}:</label>
-                    <div className="flex flex-wrap gap-2">
-                      {option.values.map((value, valueIndex) => {
-                        // Find variant index that matches this option value
-                        const variantIndex = variants.findIndex(v => 
-                          v.node.selectedOptions?.some(opt => 
-                            opt.name === option.name && opt.value === value
-                          )
-                        );
-                        const isSelected = selectedVariant?.selectedOptions?.some(
-                          opt => opt.name === option.name && opt.value === value
-                        );
-                        
-                        return (
-                          <Button
-                            key={value}
-                            variant={isSelected ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedVariantIndex(variantIndex >= 0 ? variantIndex : 0)}
-                          >
-                            {value}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+            {/* Product Type */}
+            {product.product_type && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Category:</span>
+                <Badge variant="secondary">{product.product_type}</Badge>
               </div>
             )}
 
@@ -287,14 +249,14 @@ export default function ProductDetailPage() {
                   size="lg" 
                   className="flex-1 bg-[#D4AF37] hover:bg-[#B8960C] text-black font-semibold btn-glow"
                   onClick={handleAddToCart}
-                  disabled={isAddingToCart || !selectedVariant?.availableForSale}
+                  disabled={isAddingToCart || product.status !== 'active'}
                 >
                   {isAddingToCart ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      {selectedVariant?.availableForSale ? 'Add to Cart' : 'Out of Stock'}
+                      {product.status === 'active' ? 'Add to Cart' : 'Out of Stock'}
                     </>
                   )}
                 </Button>
@@ -306,6 +268,19 @@ export default function ProductDetailPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Stock Status */}
+            {product.inventory_quantity !== undefined && product.inventory_quantity !== null && (
+              <div className="text-sm">
+                {product.inventory_quantity > 10 ? (
+                  <span className="text-green-600">✓ In Stock</span>
+                ) : product.inventory_quantity > 0 ? (
+                  <span className="text-amber-600">⚠ Only {product.inventory_quantity} left in stock</span>
+                ) : (
+                  <span className="text-red-600">✗ Out of Stock</span>
+                )}
+              </div>
+            )}
 
             {/* Product Details Accordion */}
             <Accordion type="single" collapsible className="w-full">
@@ -350,17 +325,19 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* AI Recommended Products */}
+        {/* Related Products */}
         {relatedProducts && relatedProducts.length > 0 && (
           <section className="mt-16 pt-16 border-t">
             <div className="flex items-center gap-2 mb-6">
               <Bot className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-bold">AI-Recommended Pairings</h2>
+              <h2 className="text-2xl font-bold">You May Also Like</h2>
             </div>
             <p className="text-muted-foreground mb-8">
               Customers who viewed this also loved these products
             </p>
-            <ShopifyProductGrid products={relatedProducts} columns={4} />
+            <ProductGrid 
+              products={relatedProducts.filter(p => p.id !== product.id).slice(0, 4)} 
+            />
           </section>
         )}
       </div>
