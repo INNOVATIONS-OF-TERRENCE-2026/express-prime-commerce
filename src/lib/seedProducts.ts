@@ -1029,7 +1029,7 @@ export async function seedProducts(force: boolean = false): Promise<{ success: b
 
     // Try Method 1: Bulk RPC function (SECURITY DEFINER bypasses RLS)
     console.log('Attempting bulk seed via RPC...');
-    const { data: rpcData, error: rpcError } = await supabase.rpc('bulk_seed_products', {
+    const { data: rpcData, error: rpcError } = await (supabase.rpc as Function)('bulk_seed_products', {
       products: productsJson
     });
 
