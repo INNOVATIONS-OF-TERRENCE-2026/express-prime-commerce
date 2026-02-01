@@ -12,7 +12,9 @@ import {
   Edit,
   RefreshCcw,
   Database,
-  Loader2
+  Loader2,
+  Store,
+  CloudDownload
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -45,6 +47,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Link, useSearchParams } from 'react-router-dom';
 import { seedProducts, reseedProducts } from '@/lib/seedProducts';
+import { syncShopifyProducts } from '@/lib/shopifySync';
 
 type ProductStatus = 'active' | 'paused' | 'killed' | 'draft';
 
@@ -116,8 +119,10 @@ export default function AdminProducts() {
 
   // Seed products mutation
   const seedMutation = useMutation({
-    mutationFn: async (reseed: boolean = false) => {
-      const result = reseed ? await reseedProducts() : await seedProducts();
+    mutationFn: async ({ reseed, force }: { reseed?: boolean; force?: boolean } = {}) => {
+      const result = reseed 
+        ? await reseedProducts() 
+        : await seedProducts(force ?? true); // Default to force=true to always add 75 products
       if (!result.success) {
         throw new Error(result.message);
       }
@@ -126,6 +131,27 @@ export default function AdminProducts() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast.success(result.message);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // Shopify sync mutation
+  const shopifySyncMutation = useMutation({
+    mutationFn: async () => {
+      const result = await syncShopifyProducts(75);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      return result;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success(result.message);
+      if (result.errors && result.errors.length > 0) {
+        console.warn('Sync errors:', result.errors);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -189,13 +215,27 @@ export default function AdminProducts() {
           </Select>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant="default" 
+            size="sm"
+            onClick={() => shopifySyncMutation.mutate()}
+            disabled={shopifySyncMutation.isPending}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {shopifySyncMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Store className="w-4 h-4 mr-2" />
+            )}
+            Sync from Shopify (75)
+          </Button>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => {
-              if (confirm('This will clear all products and reseed with sample data. Continue?')) {
-                seedMutation.mutate(true);
+              if (confirm('This will clear all products and reseed with 75 sample products. Continue?')) {
+                seedMutation.mutate({ reseed: true });
               }
             }}
             disabled={seedMutation.isPending}
@@ -205,12 +245,12 @@ export default function AdminProducts() {
             ) : (
               <Database className="w-4 h-4 mr-2" />
             )}
-            Reseed Data
+            Reseed 75 Products
           </Button>
           <Button variant="outline" size="sm" asChild>
             <Link to="/admin/bulk-import">
               <RefreshCcw className="w-4 h-4 mr-2" />
-              Sync Products
+              Bulk Import
             </Link>
           </Button>
         </div>
@@ -245,19 +285,33 @@ export default function AdminProducts() {
                 <TableCell colSpan={8} className="text-center py-12">
                   <Package className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
                   <p className="text-muted-foreground mb-4">No products found</p>
-                  <Button 
-                    onClick={() => seedMutation.mutate(false)}
-                    disabled={seedMutation.isPending}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    {seedMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Database className="w-4 h-4" />
-                    )}
-                    Seed Sample Products
-                  </Button>
+                  <div className="flex gap-3 justify-center">
+                    <Button 
+                      onClick={() => shopifySyncMutation.mutate()}
+                      disabled={shopifySyncMutation.isPending}
+                      className="gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      {shopifySyncMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Store className="w-4 h-4" />
+                      )}
+                      Sync from Shopify (75 Products)
+                    </Button>
+                    <Button 
+                      onClick={() => seedMutation.mutate({ force: true })}
+                      disabled={seedMutation.isPending}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      {seedMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Database className="w-4 h-4" />
+                      )}
+                      Seed 75 Products
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
