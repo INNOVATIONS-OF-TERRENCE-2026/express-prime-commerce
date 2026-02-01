@@ -6,7 +6,8 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Youtube
+  Youtube,
+  ArrowRight
 } from 'lucide-react';
 import { Logo, LogoWatermark } from '@/components/brand/Logo';
 import { BRAND, PUBLIC_ROUTES, PRODUCT_CATEGORIES } from '@/lib/constants';
@@ -50,29 +51,36 @@ export function Footer() {
 
   return (
     <footer className="bg-[#0F172A] text-white relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+      </div>
+
       {/* Watermark */}
       <div className="absolute bottom-10 right-10 pointer-events-none">
         <LogoWatermark className="w-64 h-64" />
       </div>
 
       {/* Newsletter Section */}
-      <div className="border-b border-white/10">
-        <div className="container mx-auto px-4 py-12">
+      <div className="border-b border-white/10 relative">
+        <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold text-gradient-gold mb-2">
-              Join the Express Prime Community
+            <h3 className="text-3xl font-bold mb-3">
+              Join the <span className="text-gradient-gold">Express Prime</span> Community
             </h3>
-            <p className="text-white/70 mb-6">
+            <p className="text-white/60 mb-8 text-lg">
               Get exclusive deals, early access to new products, and AI-curated recommendations.
             </p>
-            <form className="flex gap-3 max-w-md mx-auto">
+            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder="Enter your email"
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl focus:border-accent"
               />
-              <Button className="bg-[#D4AF37] hover:bg-[#B8960C] text-black font-semibold px-6 btn-glow">
+              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold px-8 h-12 rounded-xl btn-glow whitespace-nowrap">
                 Subscribe
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>
           </div>
@@ -80,23 +88,23 @@ export function Footer() {
       </div>
 
       {/* Main Footer */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <div className="container mx-auto px-4 py-16 relative">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
-            <Logo size="lg" className="mb-4" />
-            <p className="text-white/70 text-sm mb-4 max-w-xs">
+            <Logo size="lg" className="mb-6" />
+            <p className="text-white/60 text-sm mb-6 max-w-xs leading-relaxed">
               {BRAND.description}. AI-powered product curation meets premium quality.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {socialLinks.map(social => (
                 <a
                   key={social.label}
                   href={social.href}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#D4AF37] transition-colors"
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-accent hover:border-accent transition-all duration-300 group"
                   aria-label={social.label}
                 >
-                  <social.icon className="w-5 h-5" />
+                  <social.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 </a>
               ))}
             </div>
@@ -104,13 +112,13 @@ export function Footer() {
 
           {/* Shop */}
           <div>
-            <h4 className="font-semibold text-[#D4AF37] mb-4">Shop</h4>
-            <ul className="space-y-2">
+            <h4 className="font-semibold text-accent mb-5">Shop</h4>
+            <ul className="space-y-3">
               {footerLinks.shop.map(link => (
                 <li key={link.href}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-white/70 hover:text-white transition-colors"
+                    className="text-sm text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block"
                   >
                     {link.label}
                   </Link>
@@ -121,13 +129,13 @@ export function Footer() {
 
           {/* Categories */}
           <div>
-            <h4 className="font-semibold text-[#D4AF37] mb-4">Categories</h4>
-            <ul className="space-y-2">
+            <h4 className="font-semibold text-accent mb-5">Categories</h4>
+            <ul className="space-y-3">
               {footerLinks.categories.map(link => (
                 <li key={link.href}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-white/70 hover:text-white transition-colors"
+                    className="text-sm text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block"
                   >
                     {link.label}
                   </Link>
@@ -138,13 +146,13 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold text-[#D4AF37] mb-4">Support</h4>
-            <ul className="space-y-2">
+            <h4 className="font-semibold text-accent mb-5">Support</h4>
+            <ul className="space-y-3">
               {footerLinks.support.map(link => (
                 <li key={link.href}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-white/70 hover:text-white transition-colors"
+                    className="text-sm text-white/60 hover:text-white hover:translate-x-1 transition-all inline-block"
                   >
                     {link.label}
                   </Link>
@@ -155,19 +163,25 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold text-[#D4AF37] mb-4">Contact</h4>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-sm text-white/70">
-                <Mail className="w-4 h-4 text-[#D4AF37]" />
-                {BRAND.email}
+            <h4 className="font-semibold text-accent mb-5">Contact</h4>
+            <ul className="space-y-4">
+              <li className="flex items-center gap-3 text-sm text-white/60 group">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <Mail className="w-4 h-4 text-accent" />
+                </div>
+                <span className="group-hover:text-white transition-colors">{BRAND.email}</span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-white/70">
-                <Phone className="w-4 h-4 text-[#D4AF37]" />
-                {BRAND.phone}
+              <li className="flex items-center gap-3 text-sm text-white/60 group">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <Phone className="w-4 h-4 text-accent" />
+                </div>
+                <span className="group-hover:text-white transition-colors">{BRAND.phone}</span>
               </li>
-              <li className="flex items-start gap-2 text-sm text-white/70">
-                <MapPin className="w-4 h-4 text-[#D4AF37] flex-shrink-0 mt-0.5" />
-                Austin, TX USA
+              <li className="flex items-start gap-3 text-sm text-white/60 group">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 transition-colors">
+                  <MapPin className="w-4 h-4 text-accent" />
+                </div>
+                <span className="group-hover:text-white transition-colors">Austin, TX USA</span>
               </li>
             </ul>
           </div>
@@ -175,13 +189,13 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10">
+      <div className="border-t border-white/10 relative">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-white/40">
               © {currentYear} {BRAND.name}. All rights reserved.
             </p>
-            <div className="flex items-center gap-4 text-sm text-white/50">
+            <div className="flex items-center gap-6 text-sm text-white/40">
               <Link to={PUBLIC_ROUTES.privacy} className="hover:text-white transition-colors">
                 Privacy Policy
               </Link>
@@ -191,10 +205,11 @@ export function Footer() {
             </div>
             {/* Payment Icons */}
             <div className="flex items-center gap-2">
-              <div className="px-2 py-1 bg-white/10 rounded text-xs">Visa</div>
-              <div className="px-2 py-1 bg-white/10 rounded text-xs">MC</div>
-              <div className="px-2 py-1 bg-white/10 rounded text-xs">Amex</div>
-              <div className="px-2 py-1 bg-white/10 rounded text-xs">PayPal</div>
+              {['Visa', 'MC', 'Amex', 'PayPal', 'Apple Pay'].map(payment => (
+                <div key={payment} className="px-3 py-1.5 bg-white/5 rounded-lg text-xs font-medium border border-white/10">
+                  {payment}
+                </div>
+              ))}
             </div>
           </div>
         </div>

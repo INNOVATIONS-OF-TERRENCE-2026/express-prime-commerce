@@ -131,26 +131,55 @@
     animation: shimmer 12s ease-in-out infinite;
   }
 
-  /* Button glow effect */
+  /* Premium glow pulse */
   @keyframes glow-pulse {
     0%, 100% {
       box-shadow: 0 0 5px hsl(221 69% 33% / 0.3),
                   0 0 10px hsl(43 74% 52% / 0.2);
     }
     50% {
-      box-shadow: 0 0 15px hsl(221 69% 33% / 0.5),
-                  0 0 25px hsl(43 74% 52% / 0.3);
+      box-shadow: 0 0 20px hsl(221 69% 33% / 0.5),
+                  0 0 35px hsl(43 74% 52% / 0.35);
     }
   }
 
   .btn-glow:hover {
     animation: glow-pulse 2s ease-in-out infinite;
     transform: translateY(-2px);
+    transition: transform 0.2s ease;
   }
 
-  /* Card hover tilt */
+  /* Premium card hover effect */
+  .card-premium {
+    @apply relative overflow-hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-premium::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 pointer-events-none;
+    background: linear-gradient(135deg, 
+      hsl(43 74% 52% / 0.15) 0%, 
+      transparent 50%,
+      hsl(221 69% 33% / 0.1) 100%
+    );
+    transition: opacity 0.4s ease;
+  }
+
+  .card-premium:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 20px 40px -15px hsl(221 69% 33% / 0.25),
+      0 0 0 1px hsl(43 74% 52% / 0.1);
+  }
+
+  .card-premium:hover::before {
+    opacity: 1;
+  }
+
+  /* Subtle 3D tilt */
   .card-tilt {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .card-tilt:hover {
@@ -165,14 +194,51 @@
     background-clip: text;
   }
 
-  /* Blue gradient */
+  /* Premium blue gradient */
   .bg-gradient-blue {
     background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
   }
 
-  /* Gold accent border */
-  .border-gold-accent {
-    border-image: linear-gradient(135deg, #D4AF37 0%, #F5D788 100%) 1;
+  /* Hero premium gradient */
+  .bg-gradient-hero {
+    background: 
+      radial-gradient(ellipse at 20% 30%, hsl(221 69% 33% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, hsl(43 74% 52% / 0.08) 0%, transparent 50%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Gradient border */
+  .border-gradient {
+    position: relative;
+  }
+
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, #D4AF37 0%, #1E3A8A 100%);
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   /* Skeleton shimmer for loading states */
@@ -194,6 +260,112 @@
     );
     background-size: 200px 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Product card image zoom */
+  .img-zoom {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .img-zoom:hover,
+  .group:hover .img-zoom {
+    transform: scale(1.08);
+  }
+
+  /* Trust badge pulse */
+  @keyframes trust-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .animate-trust-pulse {
+    animation: trust-pulse 3s ease-in-out infinite;
+  }
+
+  /* Fade in up animation */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Staggered children animation */
+  .stagger-children > * {
+    opacity: 0;
+    animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+  .stagger-children > *:nth-child(7) { animation-delay: 0.7s; }
+  .stagger-children > *:nth-child(8) { animation-delay: 0.8s; }
+
+  /* Pulse ring effect */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 hsl(43 74% 52% / 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 10px hsl(43 74% 52% / 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 hsl(43 74% 52% / 0);
+    }
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl;
+    box-shadow: 
+      0 4px 30px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .dark .glass {
+    @apply bg-slate-900/70;
+    box-shadow: 
+      0 4px 30px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* AI badge glow */
+  @keyframes ai-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(43 74% 52% / 0.5), 
+                  0 0 10px hsl(43 74% 52% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 15px hsl(43 74% 52% / 0.7), 
+                  0 0 25px hsl(43 74% 52% / 0.4);
+    }
+  }
+
+  .ai-badge-glow {
+    animation: ai-glow 3s ease-in-out infinite;
   }
 
   /* Slide in animation for cart drawer */
@@ -227,27 +399,15 @@
     animation: slide-out-right 0.3s ease-in forwards;
   }
 
-  /* Product card image zoom */
-  .img-zoom {
-    transition: transform 0.5s ease;
-  }
-
-  .img-zoom:hover {
-    transform: scale(1.05);
-  }
-
-  /* Trust badge pulse */
-  @keyframes trust-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.8;
-    }
-  }
-
-  .animate-trust-pulse {
-    animation: trust-pulse 3s ease-in-out infinite;
+  /* Gradient line */
+  .gradient-line {
+    height: 2px;
+    background: linear-gradient(90deg, 
+      transparent 0%,
+      hsl(43 74% 52%) 20%,
+      hsl(221 69% 33%) 80%,
+      transparent 100%
+    );
   }
 }
 
@@ -275,4 +435,10 @@
 *:focus-visible {
   outline: 2px solid hsl(var(--ep-gold));
   outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: hsl(43 74% 52% / 0.3);
+  color: hsl(var(--foreground));
 }
