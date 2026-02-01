@@ -1,16 +1,16 @@
 import { TrendingUp, Star, Zap, Sparkles } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
-import { ShopifyProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
 import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
 import { LeadershipTeam } from '@/components/home/LeadershipTeam';
-import { useShopifyProducts } from '@/hooks/useShopifyProducts';
-import { ShopifyProduct } from '@/lib/shopify';
+import { useProducts, useProductsByType, useProductsByTag } from '@/hooks/useProducts';
 import { useMemo, useEffect } from 'react';
 import { AIPicksSection, CuratedCarousel } from '@/components/ai';
 import { useAIInitializer } from '@/hooks/useAIRanking';
 import type { ProductInput } from '@/ai';
+import { ProductCardProps } from '@/components/product/ProductCard';
+import { SupabaseProductSection, SupabaseAISection } from '@/components/home/SupabaseProductSection';
 
 export default function HomePage() {
   // Initialize AI ranker early
@@ -21,36 +21,34 @@ export default function HomePage() {
     initialize();
   }, [initialize]);
 
-  // Fetch all products directly from Shopify Storefront API
-  const { data: allProducts = [], isLoading } = useShopifyProducts({ limit: 50 });
+  // Fetch all products from Supabase (where actual products with images exist)
+  const { products: allProducts = [], isLoading } = useProducts({ limit: 50 });
 
-  // Convert Shopify products to AI ProductInput format
+  // Convert Supabase products to AI ProductInput format
   const aiProductInputs: ProductInput[] = useMemo(() => {
     return allProducts.map((p) => ({
-      id: p.node.id,
-      title: p.node.title,
-      description: p.node.description || null,
-      product_type: p.node.productType || null,
-      price: parseFloat(p.node.priceRange?.minVariantPrice?.amount || '0'),
-      compare_at_price: p.node.compareAtPriceRange?.minVariantPrice?.amount
-        ? parseFloat(p.node.compareAtPriceRange.minVariantPrice.amount)
-        : null,
-      vendor: p.node.vendor || null,
-      tags: p.node.tags || null,
+      id: p.id,
+      title: p.title,
+      description: null,
+      product_type: p.productType || null,
+      price: p.price,
+      compare_at_price: p.compareAtPrice || null,
+      vendor: p.vendor || null,
+      tags: p.tags || null,
     }));
   }, [allProducts]);
 
   // Filter products by type for category sections
   const productsByType = useMemo(() => {
-    const electronics: ShopifyProduct[] = [];
-    const healthWellness: ShopifyProduct[] = [];
-    const homeLiving: ShopifyProduct[] = [];
-    const kitchen: ShopifyProduct[] = [];
-    const aiPicks: ShopifyProduct[] = [];
+    const electronics: ProductCardProps[] = [];
+    const healthWellness: ProductCardProps[] = [];
+    const homeLiving: ProductCardProps[] = [];
+    const kitchen: ProductCardProps[] = [];
+    const aiPicks: ProductCardProps[] = [];
     
     allProducts.forEach((product) => {
-      const type = product.node.productType?.toLowerCase() || '';
-      const tags = product.node.tags || [];
+      const type = product.productType?.toLowerCase() || '';
+      const tags = product.tags || [];
       
       if (tags.includes('ai-pick')) {
         aiPicks.push(product);
@@ -132,7 +130,7 @@ export default function HomePage() {
       )}
 
       {/* Featured Products */}
-      <ShopifyProductSection
+      <SupabaseProductSection
         title="Featured Products"
         subtitle="Hot products flying off the shelves"
         icon={<TrendingUp className="w-6 h-6 text-accent" />}
@@ -142,7 +140,7 @@ export default function HomePage() {
       />
 
       {/* Electronics & Smart Tech */}
-      <ShopifyProductSection
+      <SupabaseProductSection
         title="Electronics & Smart Tech"
         subtitle="Innovation meets everyday convenience"
         icon={<Star className="w-6 h-6 text-accent" />}
@@ -153,7 +151,7 @@ export default function HomePage() {
       />
 
       {/* Health & Wellness */}
-      <ShopifyProductSection
+      <SupabaseProductSection
         title="Health & Wellness"
         subtitle="Take care of yourself with premium essentials"
         icon={<Zap className="w-6 h-6 text-emerald-500" />}
@@ -163,7 +161,7 @@ export default function HomePage() {
       />
 
       {/* Home & Living */}
-      <ShopifyProductSection
+      <SupabaseProductSection
         title="Home & Living"
         subtitle="Upgrade your living space"
         icon={<Sparkles className="w-6 h-6 text-primary" />}
@@ -174,7 +172,7 @@ export default function HomePage() {
       />
 
       {/* AI Recommended Section */}
-      <AIRecommendedSection 
+      <SupabaseAISection 
         products={aiRecommended.length > 0 ? aiRecommended : featuredProducts}
         isLoading={isLoading}
       />
