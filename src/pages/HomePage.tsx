@@ -1,39 +1,66 @@
 import { TrendingUp, Star, Zap, Sparkles } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
-import { ProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
+import { ShopifyProductSection, AIRecommendedSection } from '@/components/home/ProductSection';
 import { CTASection } from '@/components/home/CTASection';
 import { TrustBadges, TrustStrip } from '@/components/trust/TrustBadges';
-import { useAllProducts, useProductsByType, useProductsByTag } from '@/hooks/useProducts';
+import { useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { ShopifyProduct } from '@/lib/shopify';
+import { useMemo } from 'react';
 
 export default function HomePage() {
-  // Fetch all products from Supabase
-  const { products, isLoading } = useAllProducts(50);
-  
-  // Fetch category-specific products
-  const { products: electronics } = useProductsByType('Electronics', 4);
-  const { products: healthWellness } = useProductsByType('Health & Wellness', 4);
-  const { products: homeProducts } = useProductsByType('Home & Living', 4);
-  const { products: kitchenProducts } = useProductsByType('Kitchen Gadgets', 4);
+  // Fetch all products directly from Shopify Storefront API
+  const { data: allProducts = [], isLoading } = useShopifyProducts({ limit: 50 });
 
-  // Featured products - first 4 products
-  const featuredProducts = products.slice(0, 4);
+  // Filter products by type for category sections
+  const productsByType = useMemo(() => {
+    const electronics: ShopifyProduct[] = [];
+    const healthWellness: ShopifyProduct[] = [];
+    const homeLiving: ShopifyProduct[] = [];
+    const kitchen: ShopifyProduct[] = [];
+    const aiPicks: ShopifyProduct[] = [];
+    
+    allProducts.forEach((product) => {
+      const type = product.node.productType?.toLowerCase() || '';
+      const tags = product.node.tags || [];
+      
+      if (tags.includes('ai-pick')) {
+        aiPicks.push(product);
+      }
+      
+      if (type.includes('electronics') || type.includes('smart') || type.includes('tech')) {
+        electronics.push(product);
+      } else if (type.includes('health') || type.includes('wellness') || type.includes('fitness')) {
+        healthWellness.push(product);
+      } else if (type.includes('home') || type.includes('living') || type.includes('organization')) {
+        homeLiving.push(product);
+      } else if (type.includes('kitchen')) {
+        kitchen.push(product);
+      }
+    });
+
+    return { electronics, healthWellness, homeLiving, kitchen, aiPicks };
+  }, [allProducts]);
+
+  // Featured products - first 4 unique products
+  const featuredProducts = allProducts.slice(0, 4);
 
   // AI Recommended - tagged products or fallback to next 4
-  const { products: aiPicks } = useProductsByTag('ai-pick', 4);
-  const aiRecommended = aiPicks.length > 0 ? aiPicks : products.slice(4, 8);
+  const aiRecommended = productsByType.aiPicks.length > 0 
+    ? productsByType.aiPicks.slice(0, 4) 
+    : allProducts.slice(4, 8);
   
   // Combine home-related products
-  const allHomeProducts = homeProducts.length > 0 
-    ? homeProducts 
-    : kitchenProducts.length > 0 
-      ? kitchenProducts 
+  const allHomeProducts = productsByType.homeLiving.length > 0 
+    ? productsByType.homeLiving.slice(0, 4)
+    : productsByType.kitchen.length > 0 
+      ? productsByType.kitchen.slice(0, 4)
       : featuredProducts;
 
   return (
     <Layout>
       {/* Hero Section */}
-      <HeroSection productsCount={products.length} />
+      <HeroSection productsCount={allProducts.length} />
 
       {/* Trust Strip - Immediately under hero */}
       <section className="py-4 border-b border-border/50 bg-muted/30">
@@ -50,7 +77,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <ProductSection
+      <ShopifyProductSection
         title="Featured Products"
         subtitle="Hot products flying off the shelves"
         icon={<TrendingUp className="w-6 h-6 text-accent" />}
@@ -60,28 +87,28 @@ export default function HomePage() {
       />
 
       {/* Electronics & Smart Tech */}
-      <ProductSection
+      <ShopifyProductSection
         title="Electronics & Smart Tech"
         subtitle="Innovation meets everyday convenience"
         icon={<Star className="w-6 h-6 text-accent" />}
-        products={electronics.length > 0 ? electronics : featuredProducts}
+        products={productsByType.electronics.length > 0 ? productsByType.electronics.slice(0, 4) : featuredProducts}
         isLoading={isLoading}
         viewAllLink="/collections?category=electronics"
         bgColor="bg-muted/20"
       />
 
       {/* Health & Wellness */}
-      <ProductSection
+      <ShopifyProductSection
         title="Health & Wellness"
         subtitle="Take care of yourself with premium essentials"
         icon={<Zap className="w-6 h-6 text-emerald-500" />}
-        products={healthWellness.length > 0 ? healthWellness : featuredProducts}
+        products={productsByType.healthWellness.length > 0 ? productsByType.healthWellness.slice(0, 4) : featuredProducts}
         isLoading={isLoading}
         viewAllLink="/collections?category=health-wellness"
       />
 
       {/* Home & Living */}
-      <ProductSection
+      <ShopifyProductSection
         title="Home & Living"
         subtitle="Upgrade your living space"
         icon={<Sparkles className="w-6 h-6 text-primary" />}
