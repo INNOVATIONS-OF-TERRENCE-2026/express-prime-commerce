@@ -37,6 +37,11 @@ const SupportPage = lazy(() => import("@/pages/SupportPage"));
 const PolicyPage = lazy(() => import("@/pages/PolicyPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
+// Auth pages
+const SignInPage = lazy(() => import("@/pages/SignInPage"));
+const SignUpPage = lazy(() => import("@/pages/SignUpPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
@@ -66,6 +71,14 @@ const App = () => (
             <BrowserRouter>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
+                  {/* Auth Routes */}
+                  <Route path="/sign-in" element={<SignInPage />} />
+                  <Route path="/login" element={<SignInPage />} />
+                  <Route path="/sign-up" element={<SignUpPage />} />
+                  <Route path="/register" element={<SignUpPage />} />
+                  <Route path="/create-account" element={<SignUpPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  
                   {/* Public Storefront Routes */}
                   <Route path="/" element={<HomePage />} />
                   <Route path="/collections" element={<CollectionsPage />} />
