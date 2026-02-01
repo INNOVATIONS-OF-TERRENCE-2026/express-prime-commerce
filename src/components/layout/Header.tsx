@@ -6,7 +6,9 @@ import {
   Menu, 
   X, 
   User,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/button';
@@ -30,8 +32,9 @@ import {
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartBounce, setCartBounce] = useState(false);
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { itemCount, openCart } = useCartStore();
   const cartItemCount = itemCount();
   const { user, isAdmin, signOut } = useAuth();
@@ -44,6 +47,15 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Cart bounce animation on count change
+  useEffect(() => {
+    if (cartItemCount > 0) {
+      setCartBounce(true);
+      const timer = setTimeout(() => setCartBounce(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [cartItemCount]);
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -63,7 +75,7 @@ export function Header() {
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
           isScrolled 
-            ? 'glass shadow-lg' 
+            ? 'glass shadow-lg border-b border-accent/10' 
             : 'bg-white/95'
         )}
       >
@@ -104,6 +116,23 @@ export function Header() {
                 </Link>
               ))}
 
+              {/* AI Picks Quick Access */}
+              <Link
+                to="/collections?tag=ai-pick"
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                  'hover:bg-accent/10 text-accent hover:text-accent',
+                  'relative'
+                )}
+              >
+                <Bot className="w-4 h-4" />
+                <span>AI Picks</span>
+                <span className="absolute top-1 right-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                </span>
+              </Link>
+
               {/* Categories Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -129,11 +158,29 @@ export function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-2">
-              {/* Search */}
+              {/* AI-Styled Search Button */}
+              <Button 
+                variant="ghost" 
+                className={cn(
+                  'hidden sm:flex items-center gap-2 px-3 h-9 rounded-full',
+                  'bg-muted/50 hover:bg-muted border border-transparent',
+                  'hover:border-accent/30 transition-all duration-300',
+                  'focus-within:ring-2 focus-within:ring-accent/30 focus-within:border-accent/50'
+                )}
+                onClick={() => setSearchOpen(true)}
+              >
+                <Sparkles className="w-4 h-4 text-accent" />
+                <span className="text-sm text-muted-foreground">Search with AI...</span>
+                <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                  ⌘K
+                </kbd>
+              </Button>
+
+              {/* Mobile Search Icon */}
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hover:bg-primary/5"
+                className="sm:hidden hover:bg-primary/5"
                 onClick={() => setSearchOpen(true)}
               >
                 <Search className="w-5 h-5" />
@@ -179,16 +226,24 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Cart */}
+              {/* Cart with Premium Animation */}
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="relative hover:bg-primary/5"
+                className={cn(
+                  'relative hover:bg-primary/5 transition-all duration-300',
+                  cartBounce && 'animate-cart-bounce'
+                )}
                 onClick={openCart}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-accent-foreground text-xs font-bold rounded-full flex items-center justify-center animate-pulse-ring">
+                  <span className={cn(
+                    'absolute -top-1 -right-1 w-5 h-5 text-xs font-bold rounded-full flex items-center justify-center',
+                    'bg-gradient-to-br from-accent to-accent/80 text-accent-foreground',
+                    'shadow-lg shadow-accent/30',
+                    cartBounce && 'animate-pulse-ring'
+                  )}>
                     {cartItemCount > 99 ? '99+' : cartItemCount}
                   </span>
                 )}
@@ -208,14 +263,14 @@ export function Header() {
                     {/* Mobile Search */}
                     <Button 
                       variant="outline" 
-                      className="w-full justify-start text-muted-foreground"
+                      className="w-full justify-start text-muted-foreground border-accent/20 hover:border-accent/40"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         setSearchOpen(true);
                       }}
                     >
-                      <Search className="w-4 h-4 mr-2" />
-                      Search products...
+                      <Sparkles className="w-4 h-4 mr-2 text-accent" />
+                      Search with AI...
                     </Button>
                     
                     {/* Mobile Nav Links */}
@@ -236,6 +291,20 @@ export function Header() {
                           {link.label}
                         </Link>
                       ))}
+
+                      {/* AI Picks Mobile */}
+                      <Link
+                        to="/collections?tag=ai-pick"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 text-lg font-medium py-3 px-4 rounded-lg text-accent hover:bg-accent/10 transition-all"
+                      >
+                        <Bot className="w-5 h-5" />
+                        AI Picks
+                        <span className="ml-auto flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-accent opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                        </span>
+                      </Link>
                     </nav>
 
                     {/* Divider */}
