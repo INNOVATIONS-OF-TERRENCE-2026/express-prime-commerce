@@ -90,6 +90,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         isNew: product.tags?.includes('new'),
         isTrending: product.tags?.includes('trending'),
         isBestSeller: product.tags?.includes('bestseller'),
+        isAiPick: product.tags?.includes('ai-pick'),
       }));
     },
   });
