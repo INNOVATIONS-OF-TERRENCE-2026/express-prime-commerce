@@ -332,6 +332,50 @@ export {
 } from './aiBootstrap';
 
 // ============================================================================
+// PROFIT GOVERNOR - AUTONOMOUS PROFIT INTELLIGENCE (NEW)
+// ============================================================================
+
+export {
+  // Margin Intelligence
+  calculateProductMargin,
+  // Price Elasticity (Recommendations Only)
+  analyzePriceElasticity,
+  // Profit Weighting
+  calculateProfitWeight,
+  getProfitOptimizedRecommendations,
+  // Loss Detection
+  detectLossLeak,
+  getAllLossLeaks,
+  // Guardrails
+  evaluateGuardrail,
+  getGuardrailRejections,
+  // Executive Outputs
+  calculateProfitHealthScore,
+  generateProfitForecast,
+  // Logging
+  logDecision as logGovernorDecision,
+  getDecisionLog as getGovernorDecisionLog,
+  // Config
+  configure as configureGovernor,
+  getConfig as getGovernorConfig,
+  getGovernorStats,
+  generateMockGovernorData,
+  // Types
+  type MarginRiskLevel,
+  type LeakType,
+  type GuardrailAction,
+  type ProductMarginAnalysis,
+  type PriceElasticityAnalysis,
+  type ProfitWeightedProduct,
+  type LossLeak,
+  type GuardrailDecision,
+  type ProfitHealthScore,
+  type ProfitForecast,
+  type GovernorConfig,
+  type GovernorDecisionLog,
+} from './profitGovernor';
+
+// ============================================================================
 // CONVENIENCE EXPORTS
 // ============================================================================
 

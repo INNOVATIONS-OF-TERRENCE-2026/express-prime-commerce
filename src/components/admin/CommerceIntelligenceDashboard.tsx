@@ -3,9 +3,10 @@
  * 
  * Unified AI intelligence display for Express Prime admin.
  * Surfaces all AI modules in investor-grade format.
+ * Includes Profit Governor for autonomous profit optimization.
  * 
  * @module components/admin/CommerceIntelligenceDashboard
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -31,6 +32,12 @@ import {
   ShoppingCart,
   Package,
   Gauge,
+  Scale,
+  TrendingDown,
+  AlertCircle,
+  Percent,
+  PiggyBank,
+  LineChart,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,6 +90,18 @@ import {
 import {
   getNamingStats,
 } from '@/ai/productNaming';
+
+// Import Profit Governor
+import {
+  generateMockGovernorData,
+  getGovernorStats,
+  getDecisionLog,
+  type ProfitHealthScore,
+  type ProfitForecast,
+  type LossLeak,
+  type ProfitWeightedProduct,
+  type GovernorDecisionLog,
+} from '@/ai/profitGovernor';
 
 // ============================================================================
 // TYPES
@@ -143,6 +162,11 @@ export function CommerceIntelligenceDashboard() {
 
   // Get naming stats
   const namingStats = useMemo(() => getNamingStats(), [lastRefresh]);
+
+  // Get Profit Governor data
+  const governorData = useMemo(() => generateMockGovernorData(), [lastRefresh]);
+  const governorStats = useMemo(() => getGovernorStats(), [lastRefresh]);
+  const decisionLog = useMemo(() => getDecisionLog(10), [lastRefresh]);
 
   const handleRefresh = () => {
     setLastRefresh(new Date());
@@ -287,10 +311,14 @@ export function CommerceIntelligenceDashboard() {
 
       {/* Intelligence Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Overview
+          </TabsTrigger>
+          <TabsTrigger value="profit" className="flex items-center gap-2">
+            <PiggyBank className="w-4 h-4" />
+            Profit Governor
           </TabsTrigger>
           <TabsTrigger value="intent" className="flex items-center gap-2">
             <Target className="w-4 h-4" />
@@ -331,14 +359,14 @@ export function CommerceIntelligenceDashboard() {
               icon={Shield}
               title="Trust Score"
               value={trustStats.avgScore.toFixed(0)}
-              subtitle={`${trustStats.verifiedCount} verified picks`}
+              subtitle={`${trustStats.verifiedPicks} verified picks`}
               color="text-green-500"
             />
             <MetricCard
               icon={Package}
               title="Name Quality"
               value={namingStats.avgScore.toFixed(0)}
-              subtitle={`${namingStats.needsImprovement} need improvement`}
+              subtitle={`${namingStats.productsNeedingWork} need improvement`}
               color="text-amber-500"
             />
           </div>
@@ -363,7 +391,7 @@ export function CommerceIntelligenceDashboard() {
                         <p className="font-medium text-sm">{point.zoneName}</p>
                         <p className="text-xs text-muted-foreground">{point.suggestion}</p>
                       </div>
-                      <Badge variant={point.severity === 'high' ? 'destructive' : 'secondary'}>
+                      <Badge variant={point.severity >= 0.7 ? 'destructive' : 'secondary'}>
                         {point.frictionType}
                       </Badge>
                     </div>
@@ -372,6 +400,265 @@ export function CommerceIntelligenceDashboard() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Profit Governor Tab */}
+        <TabsContent value="profit" className="mt-6 space-y-6">
+          {/* Profit Health Score Hero */}
+          <Card className="overflow-hidden">
+            <div 
+              className="p-6 text-white relative"
+              style={{ 
+                background: `linear-gradient(135deg, ${
+                  governorData.healthScore.grade === 'A+' ? '#059669' :
+                  governorData.healthScore.grade === 'A' ? '#10b981' :
+                  governorData.healthScore.grade === 'B' ? '#3b82f6' :
+                  governorData.healthScore.grade === 'C' ? '#f59e0b' :
+                  '#ef4444'
+                }ee 0%, ${
+                  governorData.healthScore.grade === 'A+' ? '#059669' :
+                  governorData.healthScore.grade === 'A' ? '#10b981' :
+                  governorData.healthScore.grade === 'B' ? '#3b82f6' :
+                  governorData.healthScore.grade === 'C' ? '#f59e0b' :
+                  '#ef4444'
+                }99 100%)` 
+              }}
+            >
+              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-80 font-medium mb-1">PROFIT HEALTH SCORE™</p>
+                    <div className="flex items-baseline gap-3">
+                      <motion.span 
+                        className="text-6xl font-bold"
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        key={governorData.healthScore.overall}
+                      >
+                        {governorData.healthScore.overall}
+                      </motion.span>
+                      <span className="text-2xl opacity-70">/100</span>
+                      <Badge 
+                        className="ml-2 text-lg px-3 py-1" 
+                        style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                      >
+                        {governorData.healthScore.grade}
+                      </Badge>
+                      <Badge 
+                        variant="outline"
+                        className="ml-2 border-white/40 text-white"
+                      >
+                        {governorData.healthScore.trend === 'improving' ? '↑ Improving' :
+                         governorData.healthScore.trend === 'declining' ? '↓ Declining' : '→ Stable'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Scale className="w-16 h-16 opacity-30" />
+                </div>
+
+                {/* Health Components */}
+                <div className="grid grid-cols-5 gap-4 mt-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{governorData.healthScore.components.marginStability}</div>
+                    <div className="text-xs opacity-70">Margin Stability</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{governorData.healthScore.components.revenueQuality}</div>
+                    <div className="text-xs opacity-70">Revenue Quality</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{governorData.healthScore.components.riskExposure}</div>
+                    <div className="text-xs opacity-70">Risk Exposure</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{governorData.healthScore.components.conversionEfficiency}</div>
+                    <div className="text-xs opacity-70">Conversion</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{governorData.healthScore.components.inventoryHealth}</div>
+                    <div className="text-xs opacity-70">Inventory</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Alerts */}
+            {governorData.healthScore.alerts.length > 0 && (
+              <CardContent className="pt-4 bg-amber-50">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-800 text-sm">Active Alerts</p>
+                    <ul className="mt-1 space-y-1">
+                      {governorData.healthScore.alerts.map((alert, i) => (
+                        <li key={i} className="text-sm text-amber-700">• {alert}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Profit Forecasts */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <ForecastCard forecast={governorData.forecast7d} />
+            <ForecastCard forecast={governorData.forecast30d} />
+            <ForecastCard forecast={governorData.forecast90d} />
+          </div>
+
+          {/* Loss Leaks & Top Products */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Loss Leaks */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingDown className="w-5 h-5 text-red-500" />
+                  Loss Leak Detection
+                </CardTitle>
+                <CardDescription>
+                  Silent profit killers identified
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {governorData.leaks.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle className="w-12 h-12 mx-auto text-green-500/30 mb-2" />
+                    <p>No significant leaks detected</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {governorData.leaks.map((leak, i) => (
+                      <div key={i} className={cn(
+                        "p-3 rounded-lg border",
+                        leak.severity === 'critical' ? 'bg-red-50 border-red-200' :
+                        leak.severity === 'high' ? 'bg-amber-50 border-amber-200' :
+                        'bg-slate-50 border-slate-200'
+                      )}>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{leak.productTitle}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{leak.rootCause}</p>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant={leak.severity === 'critical' || leak.severity === 'high' ? 'destructive' : 'secondary'}>
+                              {leak.leakType}
+                            </Badge>
+                            <p className="text-xs text-red-600 mt-1">
+                              -${leak.estimatedLoss.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-current/10">
+                          <p className="text-xs text-muted-foreground font-medium">Remediation:</p>
+                          <ul className="text-xs text-muted-foreground mt-1">
+                            {leak.remediation.slice(0, 2).map((r, j) => (
+                              <li key={j}>• {r}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Profit-Optimized Products */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-green-500" />
+                  Profit-Weighted Recommendations
+                </CardTitle>
+                <CardDescription>
+                  Products optimized for margin × velocity × trust
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {governorData.topProducts.map((product, i) => (
+                    <div key={i} className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-transparent">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{product.productTitle}</p>
+                          <p className="text-xs text-green-700 mt-1">{product.promotionReason}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-green-600">
+                            {product.compositeScore.toFixed(0)}
+                          </div>
+                          <p className="text-xs text-muted-foreground">Composite</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        <div className="text-center p-2 bg-white/50 rounded">
+                          <div className="text-sm font-bold">{product.marginScore}</div>
+                          <div className="text-[10px] text-muted-foreground">Margin</div>
+                        </div>
+                        <div className="text-center p-2 bg-white/50 rounded">
+                          <div className="text-sm font-bold">{product.velocityScore}</div>
+                          <div className="text-[10px] text-muted-foreground">Velocity</div>
+                        </div>
+                        <div className="text-center p-2 bg-white/50 rounded">
+                          <div className="text-sm font-bold">{product.trustScore}</div>
+                          <div className="text-[10px] text-muted-foreground">Trust</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Governor Decision Log */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                AI Decisions Log
+              </CardTitle>
+              <CardDescription>
+                Human-readable explanations of autonomous decisions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {decisionLog.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Brain className="w-12 h-12 mx-auto text-muted-foreground/30 mb-2" />
+                  <p>No decisions logged yet</p>
+                  <p className="text-xs mt-1">The AI will log decisions as it optimizes profit</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {decisionLog.map((decision, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-lg border text-sm">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">{decision.decisionType}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {decision.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="mt-2 font-medium">{decision.decision}</p>
+                      <p className="text-muted-foreground text-xs mt-1">{decision.reasoning}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={decision.confidence >= 0.8 ? 'default' : 'secondary'}>
+                          {(decision.confidence * 100).toFixed(0)}% confidence
+                        </Badge>
+                        {decision.humanReviewRequired && (
+                          <Badge variant="outline" className="border-amber-500 text-amber-600">
+                            Human Review
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Buyer Intent Tab */}
@@ -443,10 +730,10 @@ export function CommerceIntelligenceDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
-                <SignalMeter label="Hover Engagement" value={intentStats.signals.hover} />
-                <SignalMeter label="Attention Score" value={intentStats.signals.attention} />
-                <SignalMeter label="Click Engagement" value={intentStats.signals.clicks} />
-                <SignalMeter label="Cart Interaction" value={intentStats.signals.cartHovers} />
+                <SignalMeter label="Tracked Products" value={intentStats.trackedProducts} />
+                <SignalMeter label="Total Signals" value={intentStats.totalSignals} />
+                <SignalMeter label="Avg Intent" value={Math.round(intentStats.avgIntent * 100)} />
+                <SignalMeter label="High Intent" value={intentStats.highIntentProducts} />
               </div>
             </CardContent>
           </Card>
@@ -508,11 +795,11 @@ export function CommerceIntelligenceDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{trustStats.verifiedCount}</div>
+                    <div className="text-2xl font-bold text-green-600">{trustStats.verifiedPicks}</div>
                     <p className="text-xs text-muted-foreground">Verified Picks</p>
                   </div>
                   <div className="text-center p-3 bg-amber-50 rounded-lg">
-                    <div className="text-2xl font-bold text-amber-600">{trustStats.cautionCount}</div>
+                    <div className="text-2xl font-bold text-amber-600">{trustStats.byTier.caution}</div>
                     <p className="text-xs text-muted-foreground">Need Review</p>
                   </div>
                 </div>
@@ -525,11 +812,11 @@ export function CommerceIntelligenceDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <TierBar label="Verified" count={trustStats.tierDistribution.verified} total={trustStats.totalProducts} color="bg-green-500" />
-                  <TierBar label="Trusted" count={trustStats.tierDistribution.trusted} total={trustStats.totalProducts} color="bg-blue-500" />
-                  <TierBar label="Standard" count={trustStats.tierDistribution.standard} total={trustStats.totalProducts} color="bg-gray-500" />
-                  <TierBar label="Caution" count={trustStats.tierDistribution.caution} total={trustStats.totalProducts} color="bg-amber-500" />
-                  <TierBar label="Unverified" count={trustStats.tierDistribution.unverified} total={trustStats.totalProducts} color="bg-red-500" />
+                  <TierBar label="Verified" count={trustStats.byTier.verified} total={trustStats.totalProducts} color="bg-green-500" />
+                  <TierBar label="Trusted" count={trustStats.byTier.trusted} total={trustStats.totalProducts} color="bg-blue-500" />
+                  <TierBar label="Standard" count={trustStats.byTier.standard} total={trustStats.totalProducts} color="bg-gray-500" />
+                  <TierBar label="Caution" count={trustStats.byTier.caution} total={trustStats.totalProducts} color="bg-amber-500" />
+                  <TierBar label="Unverified" count={trustStats.byTier.unverified} total={trustStats.totalProducts} color="bg-red-500" />
                 </div>
               </CardContent>
             </Card>
@@ -745,6 +1032,70 @@ function TierBar({
         />
       </div>
     </div>
+  );
+}
+
+function ForecastCard({ forecast }: { forecast: ProfitForecast }) {
+  const periodLabels: Record<string, string> = {
+    '7d': '7-Day',
+    '30d': '30-Day',
+    '90d': '90-Day',
+  };
+  
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <LineChart className="w-4 h-4 text-primary" />
+          {periodLabels[forecast.period]} Forecast
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Conservative */}
+          <div className="p-3 bg-slate-50 rounded-lg">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs text-muted-foreground font-medium">Conservative</span>
+              <Badge variant="secondary" className="text-xs">
+                {(forecast.conservative.confidence * 100).toFixed(0)}% conf
+              </Badge>
+            </div>
+            <div className="text-xl font-bold text-slate-700">
+              ${forecast.conservative.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {(forecast.conservative.margin * 100).toFixed(1)}% margin
+            </div>
+          </div>
+          
+          {/* Optimized */}
+          <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs text-green-700 font-medium">Optimized</span>
+              <Badge className="text-xs bg-green-600">
+                {(forecast.optimized.confidence * 100).toFixed(0)}% conf
+              </Badge>
+            </div>
+            <div className="text-xl font-bold text-green-700">
+              ${forecast.optimized.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </div>
+            <div className="text-xs text-green-600">
+              {(forecast.optimized.margin * 100).toFixed(1)}% margin
+            </div>
+          </div>
+
+          {/* Delta */}
+          <div className="text-center pt-2 border-t">
+            <div className="text-sm font-bold text-green-600">
+              +${(forecast.optimized.revenue - forecast.conservative.revenue).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Potential uplift
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
