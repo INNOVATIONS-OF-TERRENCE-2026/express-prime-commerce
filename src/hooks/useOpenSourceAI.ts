@@ -218,8 +218,8 @@ export function useUnifiedEmbedding() {
       try {
         const result = await aiEngine.generateEmbedding(text);
         return {
-          embedding: result.embedding,
-          dimension: result.embedding.length,
+          embedding: result,
+          dimension: result.length,
           source: 'api' as const,
           processingTime: performance.now() - startTime,
         };
