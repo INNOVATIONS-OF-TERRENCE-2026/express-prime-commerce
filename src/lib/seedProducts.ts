@@ -1,7 +1,7 @@
 /**
  * Product Seeding Utility
  * Populates the products table with sample data for development and testing
- * Uses Edge Function to bypass RLS policies
+ * Uses direct database inserts
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -993,7 +993,8 @@ function productsToCSV(products: SeedProduct[]): string {
 }
 
 /**
- * Seeds the products table with sample data via Edge Function (bypasses RLS)
+ * Seeds the products table with sample data
+ * Tries multiple methods: RPC function, then direct insert
  * @param force - If true, seeds even if products already exist (updates existing, adds new)
  */
 export async function seedProducts(force: boolean = false): Promise<{ success: boolean; message: string; count?: number }> {
@@ -1004,33 +1005,107 @@ export async function seedProducts(force: boolean = false): Promise<{ success: b
       .select('*', { count: 'exact', head: true });
 
     if (countError) {
-      return { success: false, message: `Error checking existing products: ${countError.message}` };
+      console.error('Count error:', countError);
+      // Continue anyway - might be able to seed
     }
 
     if (!force && count && count > 0) {
       return { success: true, message: `Products table already has ${count} products. Use force option to reseed.`, count };
     }
 
-    // Convert to CSV and use edge function to bypass RLS
-    const csvContent = productsToCSV(SEED_PRODUCTS);
-    
-    const { data, error } = await supabase.functions.invoke('bulk-import-txt', {
-      body: {
-        content: csvContent,
-        userId: null,
-      },
+    // Transform seed products to JSON format for RPC
+    const productsJson = SEED_PRODUCTS.map(p => ({
+      handle: p.handle,
+      title: p.title,
+      description: p.description,
+      vendor: p.vendor,
+      product_type: p.product_type,
+      tags: p.tags,
+      price: p.price,
+      compare_at_price: p.compare_at_price,
+      image_url: p.image_url,
+      status: p.status,
+    }));
+
+    // Try Method 1: Bulk RPC function (SECURITY DEFINER bypasses RLS)
+    console.log('Attempting bulk seed via RPC...');
+    const { data: rpcData, error: rpcError } = await supabase.rpc('bulk_seed_products', {
+      products: productsJson
     });
 
-    if (error) {
-      return { success: false, message: `Error seeding products: ${error.message}` };
+    if (!rpcError && rpcData) {
+      const result = rpcData[0] || { inserted_count: 0, updated_count: 0 };
+      return {
+        success: true,
+        message: `Successfully seeded ${result.inserted_count} new products and updated ${result.updated_count} existing products!`,
+        count: result.inserted_count + result.updated_count
+      };
+    }
+
+    console.log('RPC method failed, trying direct insert...', rpcError?.message);
+
+    // Try Method 2: Direct insert in batches
+    const BATCH_SIZE = 10;
+    let totalInserted = 0;
+    const errors: string[] = [];
+
+    const productsToInsert = SEED_PRODUCTS.map(p => ({
+      handle: p.handle,
+      title: p.title,
+      description: p.description,
+      vendor: p.vendor,
+      product_type: p.product_type,
+      tags: p.tags,
+      price: p.price,
+      compare_at_price: p.compare_at_price,
+      image_url: p.image_url,
+      status: p.status,
+      margin_percent: p.compare_at_price && p.price 
+        ? ((p.compare_at_price - p.price) / p.compare_at_price) * 100 
+        : null,
+    }));
+
+    for (let i = 0; i < productsToInsert.length; i += BATCH_SIZE) {
+      const batch = productsToInsert.slice(i, i + BATCH_SIZE);
+      
+      const { data, error } = await supabase
+        .from('products')
+        .upsert(batch, { 
+          onConflict: 'handle',
+          ignoreDuplicates: false,
+        })
+        .select();
+
+      if (error) {
+        console.error(`Batch ${Math.floor(i / BATCH_SIZE) + 1} error:`, error);
+        errors.push(error.message);
+        
+        // If RLS error, provide helpful message
+        if (error.message.includes('row-level security') || error.code === '42501') {
+          return { 
+            success: false, 
+            message: `RLS Policy Error: The database needs migration. Please go to https://supabase.com/dashboard/project/kersfyxgczuzjseaityj/sql and run the SQL from the migration file.` 
+          };
+        }
+      } else {
+        totalInserted += data?.length || 0;
+      }
+    }
+
+    if (errors.length > 0 && totalInserted === 0) {
+      return { 
+        success: false, 
+        message: `Failed to seed products. Error: ${errors[0]}. Please run the migration SQL in Supabase Dashboard.` 
+      };
     }
 
     return { 
       success: true, 
-      message: `Successfully seeded ${data?.created || 0} products!`, 
-      count: data?.created || 0 
+      message: `Successfully seeded ${totalInserted} products!`,
+      count: totalInserted 
     };
   } catch (err) {
+    console.error('Unexpected seed error:', err);
     return { 
       success: false, 
       message: `Unexpected error: ${err instanceof Error ? err.message : 'Unknown error'}` 
