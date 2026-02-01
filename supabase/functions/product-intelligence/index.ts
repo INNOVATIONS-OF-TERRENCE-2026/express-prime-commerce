@@ -387,8 +387,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Intelligence engine error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Intelligence analysis failed', details: error.message }),
+      JSON.stringify({ error: 'Intelligence analysis failed', details: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

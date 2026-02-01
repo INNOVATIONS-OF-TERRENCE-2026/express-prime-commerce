@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "ai_decisions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_analytics"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "ai_decisions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -277,6 +284,13 @@ export type Database = {
           views?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "performance_metrics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_analytics"
+            referencedColumns: ["product_id"]
+          },
           {
             foreignKeyName: "performance_metrics_product_id_fkey"
             columns: ["product_id"]
@@ -555,9 +569,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      product_analytics: {
+        Row: {
+          conversion_rate_percent: number | null
+          created_at: string | null
+          handle: string | null
+          inventory_quantity: number | null
+          last_metric_date: string | null
+          margin_percent: number | null
+          price: number | null
+          product_id: string | null
+          refund_rate_percent: number | null
+          status: Database["public"]["Enums"]["product_status"] | null
+          title: string | null
+          total_add_to_carts: number | null
+          total_orders: number | null
+          total_refund_amount: number | null
+          total_refunds: number | null
+          total_revenue: number | null
+          total_views: number | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      bulk_seed_products: {
+        Args: { products: Json }
+        Returns: {
+          inserted_count: number
+          updated_count: number
+        }[]
+      }
       has_any_role: { Args: never; Returns: boolean }
       has_role: {
         Args: {
@@ -569,6 +612,21 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_founder: { Args: never; Returns: boolean }
       is_operator: { Args: never; Returns: boolean }
+      seed_product: {
+        Args: {
+          p_compare_at_price: number
+          p_description: string
+          p_handle: string
+          p_image_url: string
+          p_price: number
+          p_product_type: string
+          p_status?: string
+          p_tags: string[]
+          p_title: string
+          p_vendor: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "founder" | "admin" | "operator"
