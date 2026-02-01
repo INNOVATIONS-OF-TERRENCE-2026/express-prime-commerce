@@ -4,11 +4,49 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as hexEncode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Verify HMAC signature from Shopify
+async function verifyHmac(params: URLSearchParams, secret: string): Promise<boolean> {
+  const hmac = params.get("hmac");
+  if (!hmac) return false;
+
+  // Build the message by sorting and joining params (excluding hmac)
+  const sortedParams = Array.from(params.entries())
+    .filter(([key]) => key !== "hmac")
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&");
+
+  // Create HMAC-SHA256 signature
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(sortedParams)
+  );
+
+  const computedHmac = Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  // Constant-time comparison to prevent timing attacks
+  return hmac.length === computedHmac.length && 
+    hmac.split('').every((char, i) => char === computedHmac[i]);
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -31,6 +69,15 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const appUrl = Deno.env.get("APP_URL") || "https://express-prime.vercel.app";
+
+    // Verify HMAC signature if secret is available
+    if (shopifyApiSecret && hmac) {
+      const isValid = await verifyHmac(url.searchParams, shopifyApiSecret);
+      if (!isValid) {
+        console.error("HMAC verification failed");
+        return new Response("Invalid HMAC signature", { status: 403 });
+      }
+    }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

@@ -64,7 +64,8 @@ serve(async (req) => {
       "write_fulfillments",
     ].join(",");
 
-    const redirectUri = `${appUrl}/api/shopify/callback`;
+    // Use Supabase function URL for OAuth callback (not app URL)
+    const redirectUri = `${supabaseUrl}/functions/v1/shopify-oauth-callback`;
     const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${shopifyApiKey}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
 
     return new Response(
