@@ -9,33 +9,33 @@ import {
   Truck, 
   Shield, 
   RotateCcw,
-  Star,
   ChevronRight,
-  Bot
+  Bot,
+  Loader2,
+  ImageOff
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ProductGrid } from '@/components/product/ProductGrid';
-import { TrustBadgesCompact } from '@/components/trust/TrustBadges';
-import { useProduct, useProducts } from '@/hooks/useProducts';
-import { useCart } from '@/contexts/CartContext';
+import { ShopifyProductGrid } from '@/components/product/ShopifyProductGrid';
+import { useShopifyProduct, useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 
 export default function ProductDetailPage() {
   const { handle } = useParams<{ handle: string }>();
-  const { product, isLoading } = useProduct(handle || '');
-  const { products: relatedProducts } = useProducts({ limit: 4 });
-  const { addItem } = useCart();
+  const { data: product, isLoading, error } = useShopifyProduct(handle || '');
+  const { data: relatedProducts } = useShopifyProducts({ limit: 4 });
+  const { addItem, isLoading: isAddingToCart } = useCartStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
@@ -71,27 +71,45 @@ export default function ProductDetailPage() {
     );
   }
 
-  const images = product.images && Array.isArray(product.images) 
-    ? product.images as string[]
-    : product.image_url 
-      ? [product.image_url] 
-      : [];
+  // Extract images from Shopify product
+  const images = product.images?.edges?.map(edge => edge.node.url) || [];
+  
+  // Get variants
+  const variants = product.variants?.edges || [];
+  const selectedVariant = variants[selectedVariantIndex]?.node;
+  
+  // Get prices
+  const price = selectedVariant?.price?.amount 
+    ? parseFloat(selectedVariant.price.amount)
+    : parseFloat(product.priceRange?.minVariantPrice?.amount || '0');
+  
+  const compareAtPrice = selectedVariant?.compareAtPrice?.amount
+    ? parseFloat(selectedVariant.compareAtPrice.amount)
+    : product.compareAtPriceRange?.minVariantPrice?.amount
+      ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
+      : null;
 
-  const discount = product.compare_at_price && product.price
-    ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
+  const discount = compareAtPrice && compareAtPrice > price
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
 
-  const handleAddToCart = () => {
-    addItem({
-      productId: product.id,
-      title: product.title,
-      price: product.price || 0,
-      compareAtPrice: product.compare_at_price || undefined,
+  const currencyCode = selectedVariant?.price?.currencyCode || product.priceRange?.minVariantPrice?.currencyCode || 'USD';
+
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
+    
+    await addItem({
+      product: { node: product },
+      variantId: selectedVariant.id,
+      variantTitle: selectedVariant.title,
+      price: selectedVariant.price,
       quantity,
-      image: product.image_url || undefined,
-      handle: product.handle || product.id,
+      selectedOptions: selectedVariant.selectedOptions || [],
     });
   };
+
+  // Get product options (Size, Color, etc.)
+  const options = product.options || [];
 
   return (
     <Layout>
@@ -117,8 +135,8 @@ export default function ProductDetailPage() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <ShoppingCart className="w-24 h-24 text-muted-foreground/30" />
+                <div className="w-full h-full flex items-center justify-center bg-secondary/20">
+                  <ImageOff className="w-24 h-24 text-muted-foreground/30" />
                 </div>
               )}
             </div>
@@ -172,12 +190,12 @@ export default function ProductDetailPage() {
               
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-primary">
-                  ${product.price?.toFixed(2)}
+                  {currencyCode === 'USD' ? '$' : currencyCode} {price.toFixed(2)}
                 </span>
-                {product.compare_at_price && product.compare_at_price > (product.price || 0) && (
+                {compareAtPrice && compareAtPrice > price && (
                   <>
                     <span className="text-xl text-muted-foreground line-through">
-                      ${product.compare_at_price.toFixed(2)}
+                      ${compareAtPrice.toFixed(2)}
                     </span>
                     <Badge className="bg-red-500">-{discount}%</Badge>
                   </>
@@ -189,6 +207,41 @@ export default function ProductDetailPage() {
             <p className="text-muted-foreground leading-relaxed">
               {product.description}
             </p>
+
+            {/* Variant Options */}
+            {options.length > 0 && options[0].values.length > 1 && (
+              <div className="space-y-4">
+                {options.map((option, optionIndex) => (
+                  <div key={option.name}>
+                    <label className="text-sm font-medium mb-2 block">{option.name}:</label>
+                    <div className="flex flex-wrap gap-2">
+                      {option.values.map((value, valueIndex) => {
+                        // Find variant index that matches this option value
+                        const variantIndex = variants.findIndex(v => 
+                          v.node.selectedOptions?.some(opt => 
+                            opt.name === option.name && opt.value === value
+                          )
+                        );
+                        const isSelected = selectedVariant?.selectedOptions?.some(
+                          opt => opt.name === option.name && opt.value === value
+                        );
+                        
+                        return (
+                          <Button
+                            key={value}
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedVariantIndex(variantIndex >= 0 ? variantIndex : 0)}
+                          >
+                            {value}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Trust Signals */}
             <div className="flex flex-wrap items-center gap-4 py-4 border-y">
@@ -234,9 +287,16 @@ export default function ProductDetailPage() {
                   size="lg" 
                   className="flex-1 bg-[#D4AF37] hover:bg-[#B8960C] text-black font-semibold btn-glow"
                   onClick={handleAddToCart}
+                  disabled={isAddingToCart || !selectedVariant?.availableForSale}
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Add to Cart
+                  {isAddingToCart ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      {selectedVariant?.availableForSale ? 'Add to Cart' : 'Out of Stock'}
+                    </>
+                  )}
                 </Button>
                 <Button size="lg" variant="outline">
                   <Heart className="w-5 h-5" />
@@ -291,16 +351,18 @@ export default function ProductDetailPage() {
         </div>
 
         {/* AI Recommended Products */}
-        <section className="mt-16 pt-16 border-t">
-          <div className="flex items-center gap-2 mb-6">
-            <Bot className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold">AI-Recommended Pairings</h2>
-          </div>
-          <p className="text-muted-foreground mb-8">
-            Customers who viewed this also loved these products
-          </p>
-          <ProductGrid products={relatedProducts} columns={4} />
-        </section>
+        {relatedProducts && relatedProducts.length > 0 && (
+          <section className="mt-16 pt-16 border-t">
+            <div className="flex items-center gap-2 mb-6">
+              <Bot className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">AI-Recommended Pairings</h2>
+            </div>
+            <p className="text-muted-foreground mb-8">
+              Customers who viewed this also loved these products
+            </p>
+            <ShopifyProductGrid products={relatedProducts} columns={4} />
+          </section>
+        )}
       </div>
     </Layout>
   );
