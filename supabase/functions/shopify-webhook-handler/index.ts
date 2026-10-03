@@ -10,7 +10,13 @@ serve(async (req) => {
   try {
     const shopifyApiSecret = Deno.env.get("SHOPIFY_API_SECRET")!;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseSecretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+    const supabaseServiceKey = supabaseSecretKeys
+      ? JSON.parse(supabaseSecretKeys)["default"]
+      : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseServiceKey) {
+      throw new Error("Supabase privileged key is not configured");
+    }
 
     // Get raw body for HMAC verification
     const rawBody = await req.text();

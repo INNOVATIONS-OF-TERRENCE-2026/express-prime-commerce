@@ -67,7 +67,13 @@ serve(async (req) => {
     const shopifyApiKey = Deno.env.get("SHOPIFY_API_KEY");
     const shopifyApiSecret = Deno.env.get("SHOPIFY_API_SECRET");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseSecretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+    const supabaseServiceKey = supabaseSecretKeys
+      ? JSON.parse(supabaseSecretKeys)["default"]
+      : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseServiceKey) {
+      throw new Error("Supabase privileged key is not configured");
+    }
     const appUrl = Deno.env.get("APP_URL") || "https://express-prime.vercel.app";
 
     // Verify HMAC signature if secret is available

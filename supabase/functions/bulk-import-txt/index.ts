@@ -31,7 +31,13 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseSecretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+    const supabaseServiceKey = supabaseSecretKeys
+      ? JSON.parse(supabaseSecretKeys)["default"]
+      : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseServiceKey) {
+      throw new Error("Supabase privileged key is not configured");
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { content, userId } = await req.json();
